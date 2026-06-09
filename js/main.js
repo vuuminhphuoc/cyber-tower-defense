@@ -1,0 +1,382 @@
+// =====================================================================
+// main.js — Game loop, update/render orchestration, bootstrap (LOAD LAST)
+// Depends: ALL files above
+// Provides (global): update, cleanupEntities, render, drawProgressBar, loop
+// Bootstraps: goToMenu() + requestAnimationFrame(loop)
+// =====================================================================
+
+// ===== Update =====
+function update(now) {
+  if (gameOver || gameWon || gamePaused) return;
+  frame++;
+
+  // economy: sky token spawn (only daytime, tokenSpawnRate > 0)
+  if (currentLevel && currentLevel.tokenSpawnRate > 0 && now - lastSkyToken >= skyTokenInterval) {
+    spawnSkyToken();
+    lastSkyToken = now;
+    const base = currentLevel.tokenSpawnRate;
+    skyTokenInterval = base + Math.random() * 2000;
+  }
+
+  tokens.forEach(s => s.update());
+  coins.forEach(c => c.update());
+  towers.forEach(p => p.update(now));
+  threats.forEach(z => z.update());
+  projectiles.forEach(p => p.update());
+
+  // update particles
+  const dt2 = deltaTime / 16.67;
+  particles.forEach(p => {
+    p.x += p.vx * dt2;
+    p.y += p.vy * dt2;
+    p.vy += 0.1 * dt2;
+  });
+  particles = particles.filter(p => performance.now() - p.born < p.life);
+  floatingTexts = floatingTexts.filter(f => performance.now() - f.born < f.life);
+
+  handleCollisions();
+  updateWaves(now);
+  lawnMowers.forEach(m => m.update());
+  lawnMowers = lawnMowers.filter(m => !m.markedForDeletion);
+
+  // cleanup marked-for-deletion entities
+  cleanupEntities();
+  updateCardsUI();
+}
+
+function cleanupEntities() {
+  // remove towers from grid before filtering
+  for (const p of towers) {
+    if (p.markedForDeletion && grid[p.row] && grid[p.row][p.col]) {
+      const cell = grid[p.row][p.col];
+      if (cell.tower === p) cell.tower = null;
+      else if (cell.baseTower === p) cell.baseTower = null;
+    }
+  }
+  towers = towers.filter(p => !p.markedForDeletion);
+  threats = threats.filter(z => !z.markedForDeletion);
+  projectiles = projectiles.filter(p => !p.markedForDeletion);
+  tokens = tokens.filter(s => !s.markedForDeletion);
+  coins = coins.filter(c => !c.markedForDeletion);
+}
+
+// ===== Render =====
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawLawn();
+  lawnMowers.forEach(m => m.draw());
+  towers.forEach(p => p.draw());
+  // frozen tower overlay
+  towers.forEach(p => {
+    if (p._frozenUntil > performance.now()) {
+      ctx.save();
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = '#7ec8e3';
+      ctx.fillRect(p.x, p.y, p.width, p.height);
+      ctx.restore();
+    }
+  });
+  // scanner pulse (single-row only)
+  const now = performance.now();
+  towers.forEach(p => {
+    if (p.type === 'scanner' && !p.markedForDeletion) {
+      const pulse = Math.sin(now / 300) * 0.15 + 0.15;
+      ctx.save();
+      ctx.globalAlpha = pulse;
+      ctx.fillStyle = '#00ff41';
+      ctx.fillRect(p.x, TOP_OFFSET + p.row * CELL_H, p.width, CELL_H);
+      ctx.restore();
+    }
+  });
+  // VPN cloak aura (centered on VPN, cloakRadius wide, same-row only)
+  towers.forEach(p => {
+    if (p.type === 'vpn' && !p.markedForDeletion) {
+      const r = (p.cfg.cloakRadius || 1.5) * CELL_W;
+      ctx.save();
+      ctx.globalAlpha = 0.15;
+      ctx.fillStyle = '#00ff41';
+      // draw centered rectangle matching actual cloak range
+      ctx.fillRect(p.x + p.width / 2 - r, TOP_OFFSET + p.row * CELL_H, r * 2, CELL_H);
+      ctx.restore();
+    }
+  });
+  // Hover cell highlight + range preview
+  if (hoverRow >= 0 && hoverCol >= 0 && hoverRow < gridRows && hoverCol < COLS) {
+    const hx = hoverCol * CELL_W;
+    const hy = TOP_OFFSET + hoverRow * CELL_H;
+    ctx.save();
+    // cell highlight
+    const canPlace = selectedTowerKey && grid[hoverRow] && grid[hoverRow][hoverCol] &&
+      !grid[hoverRow][hoverCol].tower && grid[hoverRow][hoverCol].cellType !== 'grave';
+    ctx.globalAlpha = 0.25;
+    ctx.fillStyle = canPlace ? '#00ff41' : '#ff3333';
+    ctx.fillRect(hx, hy, CELL_W, CELL_H);
+    // range indicator for selected tower
+    if (selectedTowerKey && canPlace) {
+      const cfg = TOWER_TYPES[selectedTowerKey];
+      if (cfg && (cfg.type === 'shooter' || cfg.type === 'multishooter')) {
+        // shooters target entire row to the right
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#00ffff';
+        ctx.fillRect(hx + CELL_W, hy, canvas.width - hx - CELL_W, CELL_H);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(hx + CELL_W, hy, canvas.width - hx - CELL_W, CELL_H);
+      } else if (cfg && cfg.type === 'scanner') {
+        // scanner: highlight entire row
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#00ffff';
+        ctx.fillRect(0, hy, canvas.width, CELL_H);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#00ffff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(0, hy, canvas.width, CELL_H);
+      } else if (cfg && cfg.type === 'bomb') {
+        // bomb: show explosion radius
+        const r = (cfg.radius || 1.5) * CELL_W;
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#ff6600';
+        ctx.beginPath();
+        ctx.arc(hx + CELL_W / 2, hy + CELL_H / 2, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#ff6600';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      } else if (cfg && cfg.type === 'mine') {
+        // mine: show trigger zone
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#ff6600';
+        ctx.fillRect(hx, hy, CELL_W, CELL_H);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#ff6600';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(hx, hy, CELL_W, CELL_H);
+      } else if (cfg && cfg.type === 'vpn') {
+        // VPN: show cloak radius
+        const r = (cfg.cloakRadius || 1.5) * CELL_W;
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#00ff41';
+        ctx.fillRect(hx + CELL_W / 2 - r, hy, r * 2, CELL_H);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#00ff41';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(hx + CELL_W / 2 - r, hy, r * 2, CELL_H);
+      } else if (cfg && cfg.type === 'healer') {
+        // healer: show heal range (2 tiles)
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#00ff41';
+        ctx.fillRect(hx - CELL_W, hy - CELL_H, CELL_W * 5, CELL_H * 3);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#00ff41';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(hx - CELL_W, hy - CELL_H, CELL_W * 5, CELL_H * 3);
+      } else if (cfg && cfg.type === 'chomper') {
+        // chomper: show eat range
+        ctx.globalAlpha = 0.15;
+        ctx.fillStyle = '#ffaa00';
+        ctx.fillRect(hx, hy, CELL_W + 40, CELL_H);
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(hx, hy, CELL_W + 40, CELL_H);
+      }
+    }
+    ctx.restore();
+  }
+  projectiles.forEach(p => p.draw());
+  threats.forEach(z => z.draw());
+  tokens.forEach(s => s.draw());
+  coins.forEach(c => c.draw());
+  // draw particles
+  particles.forEach(p => {
+    const age = (performance.now() - p.born) / p.life;
+    ctx.save();
+    ctx.globalAlpha = 1 - age;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    ctx.restore();
+  });
+  // draw floating texts
+  floatingTexts.forEach(f => {
+    const age = (performance.now() - f.born) / f.life;
+    ctx.save();
+    ctx.globalAlpha = 1 - age;
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = f.color;
+    ctx.fillText(f.text, f.x, f.y - age * 30);
+    ctx.restore();
+  });
+  // fog overlay
+  if (currentLevel && currentLevel.fogColumns) {
+    ctx.save();
+    // first draw tower silhouettes in fogged columns
+    towers.forEach(p => {
+      if (!p.markedForDeletion && currentLevel.fogColumns.includes(p.col)) {
+        ctx.globalAlpha = 0.35;
+        ctx.font = '40px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.cfg.emoji, p.centerX(), p.centerY() + 4);
+        // draw HP bar silhouette
+        const bw = p.width - 24;
+        const bx = p.x + 12;
+        const by = p.y + 8;
+        ctx.fillStyle = 'rgba(0,255,65,0.3)';
+        ctx.fillRect(bx, by, bw, 6);
+      }
+    });
+    // then draw fog
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(30,30,50,0.55)';
+    currentLevel.fogColumns.forEach(col => {
+      ctx.fillRect(col * CELL_W, 0, CELL_W, canvas.height);
+    });
+    ctx.restore();
+  }
+  drawProgressBar();
+  drawBossHpBar();
+
+  // banner wave
+  if (performance.now() < bannerUntil && bannerText) {
+    ctx.save();
+    ctx.font = 'bold 48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(231,76,60,0.9)';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.strokeText(bannerText, canvas.width / 2, canvas.height / 2);
+    ctx.fillText(bannerText, canvas.width / 2, canvas.height / 2);
+    ctx.restore();
+  }
+
+  // score
+  ctx.save();
+  ctx.font = 'bold 16px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'right';
+  ctx.fillText('Score: ' + score, canvas.width - 12, 22);
+  ctx.restore();
+
+  // status bar
+  const waveLabel = waveStarted ? ('Wave ' + (currentWave + 1) + '/' + WAVES.length) : 'Initializing...';
+  statusBar.textContent = (currentLevel ? currentLevel.name + ' • ' : '') + waveLabel +
+    ' • Threats: ' + threats.length + ' • Coins: ' + credits;
+
+  drawPauseOverlay();
+}
+
+// progress bar + flags
+function drawProgressBar() {
+  if (WAVES.length === 0) return;
+  const bw = 260, bh = 14, bx = canvas.width / 2 - bw / 2, by = canvas.height - 24;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+  ctx.fillStyle = '#3a2614';
+  ctx.fillRect(bx, by, bw, bh);
+  // progress (wave + intra-wave smooth)
+  let prog = 0;
+  if (waveStarted) {
+    const waveProg = WAVES.length > 1 ? currentWave / (WAVES.length - 1) : 1;
+    const intraWave = waveActive && threatsToSpawn > 0
+      ? (threatsSpawnedThisWave / threatsToSpawn) * (1 / WAVES.length)
+      : 0;
+    prog = Math.min(waveProg + intraWave, 1);
+  }
+  ctx.fillStyle = '#2ecc71';
+  ctx.fillRect(bx, by, bw * prog, bh);
+  // flag markers at huge waves
+  WAVES.forEach((w, i) => {
+    if (w.huge) {
+      const fx = bx + bw * (i / Math.max(1, WAVES.length - 1));
+      ctx.font = '16px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🚩', fx, by - 6);
+    }
+  });
+  // threat count at end
+  ctx.font = '18px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🦠', bx + bw + 14, by + bh / 2 + 2);
+  ctx.restore();
+}
+
+function drawBossHpBar() {
+  if (!currentLevel || !currentLevel.bossLevel || !bossZomboss || bossZomboss.markedForDeletion) return;
+  const bw = 400, bh = 18, bx = canvas.width / 2 - bw / 2, by = 6;
+  const ratio = Math.max(0, bossZomboss.hp / bossZomboss.maxHp);
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+  ctx.fillStyle = '#333';
+  ctx.fillRect(bx, by, bw, bh);
+  ctx.fillStyle = ratio > 0.5 ? '#e74c3c' : ratio > 0.25 ? '#f39c12' : '#f1c40f';
+  ctx.fillRect(bx, by, bw * ratio, bh);
+  ctx.font = 'bold 12px Arial';
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Zero-Day Exploit — ' + Math.max(0, Math.ceil(bossZomboss.hp)) + ' HP', canvas.width / 2, by + bh / 2);
+  ctx.restore();
+}
+
+function drawPauseOverlay() {
+  if (!gamePaused) return;
+  ctx.save();
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.font = 'bold 56px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#fff';
+  ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2 - 40);
+  ctx.font = 'bold 20px Arial';
+  ctx.fillStyle = '#aaa';
+  ctx.fillText('Press SPACE to resume', canvas.width / 2, canvas.height / 2 + 10);
+  // Quit button
+  ctx.fillStyle = '#e74c3c';
+  ctx.fillRect(canvas.width / 2 - 80, canvas.height / 2 + 40, 160, 40);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 16px Arial';
+  ctx.fillText('QUIT TO MENU', canvas.width / 2, canvas.height / 2 + 64);
+  ctx.restore();
+}
+
+// Quit button in pause overlay
+canvas.addEventListener('click', (e) => {
+  if (!gamePaused) return;
+  e.stopImmediatePropagation();
+  const rect = canvas.getBoundingClientRect();
+  const px = (e.clientX - rect.left) * (canvas.width / rect.width);
+  const py = (e.clientY - rect.top) * (canvas.height / rect.height);
+  // quit button bounds
+  const bx = canvas.width / 2 - 80, by = canvas.height / 2 + 40;
+  if (px >= bx && px <= bx + 160 && py >= by && py <= by + 40) {
+    gamePaused = false;
+    Sound.bgmStop();
+    goToMenu();
+  }
+}, true); // capture phase to run before ui.js handler
+
+// ===== Game Loop =====
+function loop(timestamp) {
+  if (lastTime > 0) {
+    deltaTime = Math.min(timestamp - lastTime, 50); // cap max 50ms
+    deltaTime *= gameSpeed; // apply speed multiplier
+    gameTime += deltaTime; // advance game clock
+  }
+  lastTime = timestamp;
+  if (gameState === GAME_STATE.PLAYING) {
+    update(gameTime);
+    render();
+  }
+  requestAnimationFrame(loop);
+}
+
+// ===== Bootstrap =====
+goToMenu();
+requestAnimationFrame(loop);

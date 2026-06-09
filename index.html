@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<meta name="description" content="Cyber Defenders — a cybersecurity tower defense game. Place towers to defend your network against viruses, trojans, worms, and more." />
+<meta name="theme-color" content="#0a0e14" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>" />
+<title>Cyber Defenders</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <h1>Cyber Defenders</h1>
+
+  <!-- ===== MENU ===== -->
+  <div id="screen-menu" class="screen">
+    <h2>Campaign Mode</h2>
+    <div id="menu-wallet">
+      <span>🪙 <span id="wallet-coins">0</span></span>
+      <span>💎 <span id="wallet-diamonds">0</span></span>
+    </div>
+    <div id="menu-levels"></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+      <button id="help-btn" class="btn btn-secondary">How to Play</button>
+      <button id="shop-btn" class="btn btn-secondary">Tech Shop</button>
+      <button id="almanac-btn" class="btn btn-secondary">Threat Database</button>
+      <button id="reset-save-btn" class="btn btn-secondary">Reset Progress</button>
+    </div>
+  </div>
+
+  <!-- ===== SEED CHOOSER ===== -->
+  <div id="screen-seed" class="screen">
+    <h2 id="seed-title">Select Cores</h2>
+    <div id="seed-preview"></div>
+    <div>Active Cores (<span id="slot-count">0</span>/<span id="slot-max">6</span>):</div>
+    <div id="chosen-bar"></div>
+    <div>Available Cores:</div>
+    <div id="inventory"></div>
+    <div style="display:flex; gap:10px;">
+      <button id="seed-back-btn" class="btn btn-secondary">Back</button>
+      <button id="lets-rock-btn" class="btn">Deploy!</button>
+    </div>
+  </div>
+
+  <!-- ===== SHOP ===== -->
+  <div id="screen-shop" class="screen">
+    <h2>Tech Shop</h2>
+    <div id="shop-wallet">
+      <span>🪙 <span id="shop-coins">0</span></span>
+      <span>💎 <span id="shop-diamonds">0</span></span>
+    </div>
+    <div id="shop-items"></div>
+    <button id="shop-back-btn" class="btn btn-secondary">Back to Menu</button>
+  </div>
+
+  <!-- ===== ALMANAC ===== -->
+  <div id="screen-almanac" class="screen">
+    <h2>Threat Database</h2>
+    <div id="almanac-tabs">
+      <button class="btn tab-btn active" data-tab="towers">Towers</button>
+      <button class="btn tab-btn" data-tab="threats">Threats</button>
+    </div>
+    <div id="almanac-content"></div>
+    <button id="almanac-back-btn" class="btn btn-secondary">Back to Menu</button>
+  </div>
+
+  <!-- ===== BATTLE UI ===== -->
+  <div id="ui-bar">
+    <div id="credit-counter">💰 50</div>
+    <div id="cards"></div>
+    <button id="shovel-btn" class="ui-tool-btn" title="Delete — remove a tower">🗑️</button>
+    <button id="speed-btn" class="ui-tool-btn" title="Fast Forward (2x)">⏩</button>
+    <button id="wave-btn" class="ui-tool-btn" title="Send next wave early">📡</button>
+    <button id="pause-btn" class="ui-tool-btn" title="Pause">⏸️</button>
+    <button id="music-btn" class="ui-tool-btn" title="Toggle music">🎵</button>
+  </div>
+  <div id="game-wrap">
+    <canvas id="game" width="900" height="500"></canvas>
+    <div id="overlay">
+      <h2 id="overlay-text"></h2>
+      <button id="restart-btn">Retry</button>
+    </div>
+  </div>
+  <div id="status-bar"></div>
+  <div id="tower-panel" style="display:none; position:absolute; background:#111820; border:2px solid #00ff41; border-radius:6px; padding:10px; z-index:100; min-width:160px; text-align:center;">
+    <div id="tower-panel-emoji" style="font-size:32px;"></div>
+    <div id="tower-panel-name" style="color:#00ff41; font-weight:bold; margin:4px 0;"></div>
+    <div id="tower-panel-stats" style="color:#00cc33; font-size:12px;"></div>
+    <div id="tower-panel-upgrade" style="margin-top:8px;"></div>
+    <div id="tower-panel-sell" style="margin-top:4px;"></div>
+    <button id="tower-panel-close" style="margin-top:6px; background:none; border:1px solid #00cc33; color:#00cc33; padding:2px 8px; cursor:pointer; font-size:11px;">✕</button>
+  </div>
+
+  <!-- ===== HELP SCREEN ===== -->
+  <div id="screen-help" class="screen">
+    <h2>How to Play</h2>
+    <div id="help-content">
+      <div class="help-section">
+        <h3>Goal</h3>
+        <p>Defend your network against incoming threats by placing cybersecurity towers. Each threat that reaches the left edge breaches your defenses.</p>
+      </div>
+      <div class="help-section">
+        <h3>Controls</h3>
+        <table class="help-table">
+          <tr><td>Click tower card</td><td>Select a tower to place</td></tr>
+          <tr><td>Click grid cell</td><td>Place selected tower</td></tr>
+          <tr><td>Right-click</td><td>Cancel tower selection</td></tr>
+          <tr><td>Hover over coins</td><td>Auto-collect coins</td></tr>
+          <tr><td><kbd>1</kbd>-<kbd>9</kbd></td><td>Quick-select tower card</td></tr>
+          <tr><td><kbd>Space</kbd></td><td>Pause / Resume</td></tr>
+          <tr><td><kbd>S</kbd></td><td>Toggle shovel (remove tower)</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Cancel selection</td></tr>
+        </table>
+      </div>
+      <div class="help-section">
+        <h3>Tips</h3>
+        <ul>
+          <li>Start with Bitcoin Miners to build your economy early.</li>
+          <li>Firewalls are your basic defense — place them in every row.</li>
+          <li>Mines (Tripwire, EMP) are invisible but take time to arm.</li>
+          <li>Use VPN Shield to hide towers from threats.</li>
+          <li>On water levels, place Proxy Nodes first, then towers on top.</li>
+          <li>Save your Firewall Resets — they only trigger once per row!</li>
+        </ul>
+      </div>
+    </div>
+    <button id="help-back-btn" class="btn btn-secondary">Back to Menu</button>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer id="game-footer">
+    <p>Fan-made tower defense game — Original gameplay, not affiliated with any existing franchise</p>
+    <p>Source code: <a href="https://github.com/vuuminhphuoc/cyber-tower-defense" target="_blank" rel="noopener">GitHub</a>
+       · Author: <a href="https://vuuminhphuoc-portfolio.netlify.app/" target="_blank" rel="noopener">Phước</a>
+    </p>
+  </footer>
+
+  <!-- JS modules loaded in dependency order. main.js must load LAST. -->
+  <script src="js/config.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/waves.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/almanac.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
