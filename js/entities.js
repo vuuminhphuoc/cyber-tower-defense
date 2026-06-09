@@ -181,7 +181,8 @@ class Tower {
     } else if (this.type === 'shooter' || this.type === 'multishooter') {
       const hasTarget = threats.some(z =>
         !z.markedForDeletion && z.x + z.width > this.x &&
-        (z.row === this.row || z.type === 'BOSS')
+        (z.row === this.row || z.type === 'BOSS') &&
+        (!z._cloaked) // skip cloaked APT threats
       );
       // adware slow: double the fire interval
       const adwareSlowed = now < this._adwareSlowUntil;
@@ -216,7 +217,8 @@ class Tower {
         const prey = threats.find(z =>
           !z.markedForDeletion &&
           z.x + z.width > this.x && z.x < this.x + this.width + 40 &&
-          (z.row === this.row || z.type === 'BOSS')
+          (z.row === this.row || z.type === 'BOSS') &&
+          (!z._cloaked) // skip cloaked APT
         );
         if (prey) {
           prey.markedForDeletion = true;
@@ -290,7 +292,8 @@ class Tower {
           const step = threats.find(z =>
             !z.markedForDeletion &&
             z.x + z.width > this.x && z.x < this.x + this.width &&
-            (z.row === this.row || z.type === 'BOSS')
+            (z.row === this.row || z.type === 'BOSS') &&
+            (!z._cloaked) // skip cloaked APT
           );
           if (step) {
             if (step.type === 'BOSS') { step.takeDamage(mineDmg); }
@@ -463,6 +466,16 @@ class Threat {
     this._paperHp = cfg.paperHp || 0;
     this._enragedSpeed = cfg.enragedSpeed || this.baseSpeed;
     this._lastStealTime = 0;
+    this.bornAt = gameTime;
+    // APT cloaking
+    this._cloakUntil = gameTime + (cfg.cloakTime || 0);
+    // Rootkit hijack
+    this._hijackedTower = null;
+    this._hijackUntil = 0;
+    // Botnet swarm
+    if (type === 'BOTNET' && cfg.swarmCount) {
+      this._swarmSpawned = false;
+    }
   }
 
   centerX() { return this.x + this.width / 2; }
@@ -550,6 +563,36 @@ class Threat {
         }
       }
     }
+
+    // APT cloaking: become invisible after 1s, reappear after cloakTime
+    if (this.type === 'APT' && !this._cloaked) {
+      if (gameTime - this.bornAt > 1000 && gameTime < this._cloakUntil) {
+        this._cloaked = true;
+      }
+    }
+    if (this.type === 'APT' && this._cloaked && gameTime >= this._cloakUntil) {
+      this._cloaked = false;
+    }
+
+    // Rootkit hijacking: damage own towers when eating
+    if (this.type === 'ROOTKIT' && this.isEating && target && !target.markedForDeletion) {
+      if (this._hijackedTower !== target) {
+        this._hijackedTower = target;
+        this._hijackUntil = gameTime + (THREAT_TYPES.ROOTKIT.hijackDuration || 4000);
+        // visual effect
+        spawnFloatingText(target.centerX(), target.y - 10, 'HIJACKED!', '#ff00ff');
+        Sound.cryptolockerFreeze();
+      }
+    }
+
+    // Botnet swarm: spawn extra threats when first appearing
+    if (this.type === 'BOTNET' && !this._swarmSpawned && this.x < canvas.width - 50) {
+      this._swarmSpawned = true;
+      const count = (THREAT_TYPES.BOTNET.swarmCount || 3) - 1; // -1 because this one already exists
+      for (let i = 0; i < count; i++) {
+        spawnThreatByType('BASIC', this.row);
+      }
+    }
   }
 
   takeDamage(amount) {
@@ -607,6 +650,28 @@ class Threat {
     if (this.type === 'SPYWARE') {
       ctx.font = '16px serif';
       ctx.fillText('💰', cx + 24, cy - 16);
+    }
+    // APT cloaking effect
+    if (this.type === 'APT') {
+      if (this._cloaked) {
+        ctx.globalAlpha = 0.2; // very transparent when cloaked
+        ctx.font = '16px serif';
+        ctx.fillText('🎭', cx + 24, cy - 16);
+      } else if (gameTime - this.bornAt < 1000) {
+        // charging up cloak
+        ctx.font = '16px serif';
+        ctx.fillText('⏳', cx + 24, cy - 16);
+      }
+    }
+    // Rootkit hijack indicator
+    if (this.type === 'ROOTKIT' && this._hijackedTower) {
+      ctx.font = '16px serif';
+      ctx.fillText('🐛', cx + 24, cy - 16);
+    }
+    // Botnet swarm indicator
+    if (this.type === 'BOTNET') {
+      ctx.font = '14px serif';
+      ctx.fillText('🕸️', cx + 24, cy - 16);
     }
     ctx.restore();
     this.drawHpBar();
@@ -674,7 +739,7 @@ class Zomboss {
           const count = 2 + Math.floor(Math.random() * 3);
           for (let i = 0; i < count; i++) {
             const row = Math.floor(Math.random() * gridRows);
-            const types = ['BASIC', 'CONEHEAD', 'BUCKETHEAD', 'FOOTBALL', 'SPYWARE', 'ADWARE', 'CRYPTOLOCKER', 'GLITCH'];
+            const types = ['BASIC', 'CONEHEAD', 'BUCKETHEAD', 'FOOTBALL', 'SPYWARE', 'ADWARE', 'CRYPTOLOCKER', 'GLITCH', 'BOTNET', 'APT', 'ROOTKIT'];
             spawnThreatByType(types[Math.floor(Math.random() * types.length)], row);
           }
           spawnFloatingText(canvas.width / 2, 60, 'SUMMONED ' + count + '!', '#ff3333');

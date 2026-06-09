@@ -31,12 +31,12 @@ Defend your network against incoming threats — viruses, trojans, worms, ransom
 
 | Tower | Cost | Type | Description |
 |-------|------|------|-------------|
-| ⛏️ Bitcoin Miner | 50 | Producer | Generates 25 coins every 12s |
+| ⛏️ Bitcoin Miner | 50 | Producer | Generates 25 coins every 8s |
 | 🏦 Crypto Farm | 150 | Producer | Generates 25 coins every 8s |
-| 🧱 Firewall | 100 | Shooter | 20 dmg, fires every 1.5s |
+| 🧱 Firewall | 100 | Shooter | 25 dmg, fires every 1.5s |
 | 🔐 Encryption Tower | 175 | Shooter | 20 dmg + 50% slow for 2s |
-| 🤖 DDoS Bot | 200 | Multi-Shooter | Fires 2 × 8 dmg in quick burst |
-| 🎯 Sniper Tower | 250 | Shooter | 120 dmg, fires every 2.5s |
+| 🤖 DDoS Bot | 200 | Multi-Shooter | Fires 2 × 5 dmg in quick burst |
+| 🎯 Sniper Tower | 250 | Shooter | 120 dmg, fires every 2s |
 | 🍯 Honeypot | 150 | Chomper | Instant-kill, chews 30s |
 | 💥 Data Purge | 150 | Bomb | 1200 dmg in 3×3 area |
 | ⚡ System Wipe | 125 | Row Clear | Destroys all threats in a row |
@@ -64,6 +64,9 @@ Defend your network against incoming threats — viruses, trojans, worms, ransom
 | 📢 Adware | 400 | 0.18 | Slows tower fire rate by 50% |
 | 🧊 CryptoLocker | 500 | 0.15 | Freezes tower for 3s on contact |
 | ⚡ Glitch | 150 | 0.60 | Very fast, low HP, appears in swarms |
+| 🕸️ Botnet | 100 | 0.30 | Spawns in groups of 3 |
+| 🎭 APT | 800 | 0.12 | Advanced Persistent Threat, cloaks for 5s |
+| 🐛 Rootkit | 600 | 0.15 | Hijacks tower for 4s |
 | 👾 Zero-Day Exploit | 30000 | 0 | Boss — summons 2-4 threats, fireballs, smashes |
 
 ## Stages

@@ -20,14 +20,14 @@ let CELL_H = canvas.height / ROWS;    // 100, updated per-level for pool mode
 // ===== Tower (defense) blueprints =====
 const TOWER_TYPES = {
   // --- Economy ---
-  BITCOIN_MINER:  { cost: 50,  hp: 300,  cooldown: 2000,  type: 'producer', emoji: '⛏️', name: 'Bitcoin Miner', tokenRate: 12000, desc: 'Generates 25 coins every 12s', upgradeCost: 30 },
+  BITCOIN_MINER:  { cost: 50,  hp: 300,  cooldown: 2000,  type: 'producer', emoji: '⛏️', name: 'Bitcoin Miner', tokenRate: 8000, desc: 'Generates 25 coins every 8s', upgradeCost: 30 },
   CRYPTO_FARM:    { cost: 150, hp: 300,  cooldown: 2000,  type: 'producer', emoji: '🏦', name: 'Crypto Farm', tokenRate: 8000, desc: 'Generates 25 coins every 8s (faster)', upgradeCost: 75 },
 
   // --- Shooters ---
-  FIREWALL:       { cost: 100, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🧱', name: 'Firewall', damage: 20, fireRate: 1500, desc: 'Fires data packets, 20 dmg every 1.5s', upgradeCost: 50 },
+  FIREWALL:       { cost: 100, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🧱', name: 'Firewall', damage: 25, fireRate: 1500, desc: 'Fires data packets, 25 dmg every 1.5s', upgradeCost: 50 },
   ENCRYPTION:     { cost: 175, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🔐', name: 'Encryption Tower', damage: 20, fireRate: 1500, slow: 0.5, slowDuration: 2000, desc: 'Fires encrypted data, slows threats 50%', upgradeCost: 90 },
-  DDoS_BOT:       { cost: 200, hp: 250,  cooldown: 2000,  type: 'multishooter', emoji: '🤖', name: 'DDoS Bot', damage: 8, fireRate: 400, multiShot: 2, desc: 'Fires 2 packets in rapid succession, 8 dmg each', upgradeCost: 100 },
-  SNIPER:         { cost: 250, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🎯', name: 'Sniper Tower', damage: 120, fireRate: 2500, desc: 'High damage 120 dmg, slow fire every 2.5s', upgradeCost: 125 },
+  DDoS_BOT:       { cost: 200, hp: 250,  cooldown: 2000,  type: 'multishooter', emoji: '🤖', name: 'DDoS Bot', damage: 5, fireRate: 400, multiShot: 2, desc: 'Fires 2 packets in rapid succession, 5 dmg each', upgradeCost: 100 },
+  SNIPER:         { cost: 250, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🎯', name: 'Sniper Tower', damage: 120, fireRate: 2000, desc: 'High damage 120 dmg, fires every 2s', upgradeCost: 125 },
 
   // --- Chomper ---
   HONEYPOT:       { cost: 150, hp: 300,  cooldown: 5000,  type: 'chomper',  emoji: '🍯', name: 'Honeypot', chewTime: 30000, desc: 'Eats a threat instantly, chews for 30s', upgradeCost: 75 },
@@ -68,6 +68,9 @@ const THREAT_TYPES = {
   ADWARE:        { hp: 400,  speed: 0.18, damage: 100, emoji: '📢', name: 'Adware', slowFireRate: 0.5, desc: 'Slows tower fire rate by 50% when near' },
   CRYPTOLOCKER:  { hp: 500,  speed: 0.15, damage: 100, emoji: '🧊', name: 'CryptoLocker', freezeTime: 3000, desc: 'Freezes tower for 3s on contact' },
   GLITCH:        { hp: 150,  speed: 0.6,  damage: 50,  emoji: '⚡', name: 'Glitch', desc: 'Very fast, low HP, appears in swarms' },
+  BOTNET:        { hp: 100,  speed: 0.3,  damage: 50,  emoji: '🕸️', name: 'Botnet', swarmCount: 3, desc: 'Spawns in groups of 3, low HP each' },
+  APT:           { hp: 800,  speed: 0.12, damage: 150, emoji: '🎭', name: 'APT', cloakTime: 5000, desc: 'Advanced Persistent Threat, cloaks for 5s' },
+  ROOTKIT:       { hp: 600,  speed: 0.15, damage: 100, emoji: '🐛', name: 'Rootkit', hijackDuration: 4000, desc: 'Hijacks tower for 4s, turning it against you' },
   BOSS:          { hp: 30000, speed: 0, damage: 0, emoji: '👾', name: 'Zero-Day Exploit' }
 };
 const THREAT_KEYS = Object.keys(THREAT_TYPES);
@@ -141,7 +144,7 @@ const LEVEL_DATABASE = {
 
   // === Stage 2: Dark Web (3 levels — no sky data, corrupted blocks) ===
   "2-1": {
-    name: "Dark Web - Level 1", stage: 2, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 0,
+    name: "Dark Web - Level 1", stage: 2, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 12000,
     graves: [{ row: 1, col: 7 }, { row: 3, col: 8 }],
     reward: "VPN_SHIELD", unlockedTowers: ['BITCOIN_MINER', 'FIREWALL', 'ENCRYPTION', 'FIREWALL_WALL', 'DATA_PURGE', 'TRIPWIRE', 'HONEYPOT', 'SYSTEM_WIPE'],
     waves: [
@@ -151,7 +154,7 @@ const LEVEL_DATABASE = {
     ]
   },
   "2-2": {
-    name: "Dark Web - Level 2", stage: 2, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 0,
+    name: "Dark Web - Level 2", stage: 2, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 10000,
     graves: [{ row: 0, col: 6 }, { row: 2, col: 8 }, { row: 4, col: 7 }],
     reward: "SCANNER", unlockedTowers: ['BITCOIN_MINER', 'FIREWALL', 'ENCRYPTION', 'FIREWALL_WALL', 'DATA_PURGE', 'TRIPWIRE', 'HONEYPOT', 'SYSTEM_WIPE', 'VPN_SHIELD'],
     waves: [
@@ -162,7 +165,7 @@ const LEVEL_DATABASE = {
     ]
   },
   "2-3": {
-    name: "Dark Web - Level 3", stage: 2, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 0,
+    name: "Dark Web - Level 3", stage: 2, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 8000,
     graves: [{ row: 0, col: 5 }, { row: 1, col: 7 }, { row: 3, col: 6 }, { row: 4, col: 8 }],
     reward: "DDoS_BOT", unlockedTowers: ['BITCOIN_MINER', 'FIREWALL', 'ENCRYPTION', 'FIREWALL_WALL', 'DATA_PURGE', 'TRIPWIRE', 'HONEYPOT', 'SYSTEM_WIPE', 'VPN_SHIELD', 'SCANNER'],
     waves: [
@@ -212,7 +215,7 @@ const LEVEL_DATABASE = {
     waves: [
       { count: 6, coneChance: 0.3, poleChance: 0.15, bucketChance: 0.15, newspaperChance: 0.1, spywareChance: 0.05 },
       { count: 10, coneChance: 0.4, poleChance: 0.2, bucketChance: 0.2, newspaperChance: 0.15, footballChance: 0.1, adwareChance: 0.05 },
-      { count: 14, coneChance: 0.5, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, footballChance: 0.15, spywareChance: 0.1, huge: true }
+      { count: 14, coneChance: 0.5, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, footballChance: 0.15, spywareChance: 0.1, botnetChance: 0.05, huge: true }
     ]
   },
   "4-2": {
@@ -221,9 +224,9 @@ const LEVEL_DATABASE = {
     reward: "STEEL_FIREWALL", unlockedTowers: ALL_TOWER_KEYS.filter(k => k !== 'NUCLEAR_OPTION'),
     waves: [
       { count: 8, coneChance: 0.35, poleChance: 0.2, bucketChance: 0.2, newspaperChance: 0.15, spywareChance: 0.1, adwareChance: 0.05 },
-      { count: 12, coneChance: 0.45, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, footballChance: 0.1, cryptolockerChance: 0.05 },
+      { count: 12, coneChance: 0.45, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, footballChance: 0.1, cryptolockerChance: 0.05, botnetChance: 0.05 },
       { count: 16, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, footballChance: 0.15, spywareChance: 0.15, adwareChance: 0.1 },
-      { count: 22, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, spywareChance: 0.15, adwareChance: 0.1, cryptolockerChance: 0.1, huge: true }
+      { count: 22, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, spywareChance: 0.15, adwareChance: 0.1, cryptolockerChance: 0.1, botnetChance: 0.1, huge: true }
     ]
   },
   "4-3": {
@@ -231,10 +234,10 @@ const LEVEL_DATABASE = {
     fogColumns: [3, 4, 5, 6, 7, 8],
     reward: "NUCLEAR_OPTION", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
-      { count: 10, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, spywareChance: 0.15, adwareChance: 0.1, cryptolockerChance: 0.05 },
+      { count: 10, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, spywareChance: 0.15, adwareChance: 0.1, cryptolockerChance: 0.05, botnetChance: 0.1 },
       { count: 14, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.15, spywareChance: 0.15, adwareChance: 0.1 },
-      { count: 18, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, glitchChance: 0.1 },
-      { count: 25, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.15, glitchChance: 0.15, huge: true }
+      { count: 18, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, glitchChance: 0.1, botnetChance: 0.15 },
+      { count: 25, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.15, glitchChance: 0.15, botnetChance: 0.2, huge: true }
     ]
   },
 
@@ -254,32 +257,32 @@ const LEVEL_DATABASE = {
     name: "Cloud Net - Level 1", stage: 6, gridMode: '5_LANE', initialTokens: 100, tokenSpawnRate: 6000,
     reward: null, unlockedTowers: ALL_TOWER_KEYS,
     waves: [
-      { count: 8, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, spywareChance: 0.15, adwareChance: 0.1 },
-      { count: 14, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1 },
-      { count: 20, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, spywareChance: 0.2, adwareChance: 0.2, cryptolockerChance: 0.15, glitchChance: 0.15, huge: true }
+      { count: 8, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, spywareChance: 0.15, adwareChance: 0.1, botnetChance: 0.1 },
+      { count: 14, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, aptChance: 0.05 },
+      { count: 20, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, spywareChance: 0.2, adwareChance: 0.2, cryptolockerChance: 0.15, glitchChance: 0.15, botnetChance: 0.15, huge: true }
     ]
   },
   "6-2": {
     name: "Cloud Net - Level 2", stage: 6, gridMode: '6_LANE_POOL', initialTokens: 100, tokenSpawnRate: 5000,
     reward: null, unlockedTowers: ALL_TOWER_KEYS,
     waves: [
-      { count: 10, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1 },
-      { count: 16, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.2, spywareChance: 0.2, adwareChance: 0.2, cryptolockerChance: 0.15 },
-      { count: 22, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.2, glitchChance: 0.2 },
-      { count: 30, coneChance: 0.7, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.2, glitchChance: 0.2, huge: true }
+      { count: 10, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, aptChance: 0.05 },
+      { count: 16, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.2, spywareChance: 0.2, adwareChance: 0.2, cryptolockerChance: 0.15, aptChance: 0.1, rootkitChance: 0.05 },
+      { count: 22, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.2, glitchChance: 0.2, botnetChance: 0.2 },
+      { count: 30, coneChance: 0.7, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.2, glitchChance: 0.2, aptChance: 0.15, rootkitChance: 0.1, huge: true }
     ]
   },
 
   // === Stage 7: Air Gap (ultimate challenge) ===
   "7-1": {
-    name: "Air Gap - Level 1", stage: 7, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 8000,
+    name: "Air Gap - Level 1", stage: 7, gridMode: '5_LANE', initialTokens: 50, tokenSpawnRate: 6000,
     fogColumns: [4, 5, 6, 7, 8],
     reward: null, unlockedTowers: ALL_TOWER_KEYS,
     waves: [
-      { count: 10, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, glitchChance: 0.05 },
-      { count: 16, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.2, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.15, glitchChance: 0.1 },
-      { count: 22, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.25, spywareChance: 0.3, adwareChance: 0.2, cryptolockerChance: 0.2, glitchChance: 0.15 },
-      { count: 30, coneChance: 0.7, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.3, adwareChance: 0.25, cryptolockerChance: 0.2, glitchChance: 0.2, huge: true }
+      { count: 10, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, glitchChance: 0.05, botnetChance: 0.15 },
+      { count: 16, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.2, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.15, glitchChance: 0.1, aptChance: 0.1, rootkitChance: 0.05 },
+      { count: 22, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.25, spywareChance: 0.3, adwareChance: 0.2, cryptolockerChance: 0.2, glitchChance: 0.15, botnetChance: 0.2 },
+      { count: 30, coneChance: 0.7, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.3, adwareChance: 0.25, cryptolockerChance: 0.2, glitchChance: 0.2, aptChance: 0.15, rootkitChance: 0.1, huge: true }
     ]
   },
   "7-2": {
@@ -287,10 +290,10 @@ const LEVEL_DATABASE = {
     fogColumns: [3, 4, 5, 6, 7, 8],
     reward: null, unlockedTowers: ALL_TOWER_KEYS,
     waves: [
-      { count: 12, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.15, glitchChance: 0.1 },
-      { count: 18, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.25, spywareChance: 0.3, adwareChance: 0.25, cryptolockerChance: 0.2, glitchChance: 0.15 },
-      { count: 25, coneChance: 0.7, poleChance: 0.45, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.3, adwareChance: 0.25, cryptolockerChance: 0.25, glitchChance: 0.2 },
-      { count: 35, coneChance: 0.75, poleChance: 0.45, bucketChance: 0.45, newspaperChance: 0.4, footballChance: 0.35, spywareChance: 0.35, adwareChance: 0.3, cryptolockerChance: 0.25, glitchChance: 0.25, huge: true }
+      { count: 12, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, spywareChance: 0.25, adwareChance: 0.2, cryptolockerChance: 0.15, glitchChance: 0.1, aptChance: 0.1 },
+      { count: 18, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.25, spywareChance: 0.3, adwareChance: 0.25, cryptolockerChance: 0.2, glitchChance: 0.15, aptChance: 0.15, rootkitChance: 0.1 },
+      { count: 25, coneChance: 0.7, poleChance: 0.45, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.3, adwareChance: 0.25, cryptolockerChance: 0.25, glitchChance: 0.2, botnetChance: 0.2, aptChance: 0.15 },
+      { count: 35, coneChance: 0.75, poleChance: 0.45, bucketChance: 0.45, newspaperChance: 0.4, footballChance: 0.35, spywareChance: 0.35, adwareChance: 0.3, cryptolockerChance: 0.25, glitchChance: 0.25, aptChance: 0.2, rootkitChance: 0.15, huge: true }
     ]
   }
 };

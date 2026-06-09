@@ -56,7 +56,10 @@ function spawnThreat() {
     { type: 'SPYWARE',       chance: w.spywareChance || 0 },
     { type: 'ADWARE',        chance: w.adwareChance || 0 },
     { type: 'CRYPTOLOCKER',  chance: w.cryptolockerChance || 0 },
-    { type: 'GLITCH',        chance: w.glitchChance || 0 }
+    { type: 'GLITCH',        chance: w.glitchChance || 0 },
+    { type: 'BOTNET',        chance: w.botnetChance || 0 },
+    { type: 'APT',           chance: w.aptChance || 0 },
+    { type: 'ROOTKIT',       chance: w.rootkitChance || 0 }
   ];
   // remove BASIC fallback from weight calculation
   const weighted = chances.filter(c => c.type !== 'BASIC' && c.chance > 0);

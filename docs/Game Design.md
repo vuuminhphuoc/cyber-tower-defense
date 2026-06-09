@@ -43,16 +43,16 @@ Cybersecurity tower defense game. 21 levels across 7 stages.
 ### Economy
 | Tower | Cost | HP | Special | Desc |
 |-------|------|----|---------|------|
-| ⛏️ Bitcoin Miner | 50 | 300 | Produces 25 tokens every 12s | Basic producer |
+| ⛏️ Bitcoin Miner | 50 | 300 | Produces 25 tokens every 8s | Basic producer |
 | 🏦 Crypto Farm | 150 | 300 | Produces 25 tokens every 8s | Fast producer |
 
 ### Shooters
 | Tower | Cost | HP | DMG | Fire Rate | Special | Desc |
 |-------|------|----|-----|-----------|---------|------|
-| 🧱 Firewall | 100 | 300 | 20 | 1.5s | — | Basic shooter |
+| 🧱 Firewall | 100 | 300 | 25 | 1.5s | — | Basic shooter |
 | 🔐 Encryption | 175 | 300 | 20 | 1.5s | Slow 50% for 2s | Slows threats |
-| 🤖 DDoS Bot | 200 | 250 | 8 | 0.4s | 2 shots | Rapid fire |
-| 🎯 Sniper | 250 | 300 | 120 | 2.5s | — | High damage |
+| 🤖 DDoS Bot | 200 | 250 | 5 | 0.4s | 2 shots | Rapid fire |
+| 🎯 Sniper | 250 | 300 | 120 | 2.0s | — | High damage |
 
 ### Special
 | Tower | Cost | HP | Special | Desc |
@@ -86,7 +86,7 @@ Cybersecurity tower defense game. 21 levels across 7 stages.
 |-------|------|----|------|
 | 🔗 Proxy Node | 25 | 300 | Platform for Data Stream cells |
 
-## Threat Types (11)
+## Threat Types (14)
 
 | Emoji | Key | Name | HP | Speed | DMG/s | Special |
 |-------|-----|------|-----|-------|-------|---------|
@@ -100,6 +100,9 @@ Cybersecurity tower defense game. 21 levels across 7 stages.
 | 📢 | ADWARE | Adware | 400 | 0.18 | 100 | Slows tower fire rate by 50% |
 | 🧊 | CRYPTOLOCKER | CryptoLocker | 500 | 0.15 | 100 | Freezes tower for 3s |
 | ⚡ | GLITCH | Glitch | 150 | 0.6 | 50 | Very fast, low HP, swarm |
+| 🕸️ | BOTNET | Botnet | 100 | 0.3 | 50 | Spawns in groups of 3 |
+| 🎭 | APT | Advanced Persistent Threat | 800 | 0.12 | 150 | Cloaks for 5s, invisible to towers |
+| 🐛 | ROOTKIT | Rootkit | 600 | 0.15 | 100 | Hijacks tower for 4s |
 | 👾 | BOSS | Zero-Day Exploit | 30000 | 0 | 0 | Summons 2-4 threats, fireball, smash |
 
 ## Stages (7)

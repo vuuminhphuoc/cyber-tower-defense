@@ -148,7 +148,8 @@ function openSeedChooser(levelId) {
   const chanceMap = {
     coneChance: 'CONEHEAD', poleChance: 'POLE_VAULTING', bucketChance: 'BUCKETHEAD',
     newspaperChance: 'NEWSPAPER', footballChance: 'FOOTBALL', spywareChance: 'SPYWARE',
-    adwareChance: 'ADWARE', cryptolockerChance: 'CRYPTOLOCKER', glitchChance: 'GLITCH'
+    adwareChance: 'ADWARE', cryptolockerChance: 'CRYPTOLOCKER', glitchChance: 'GLITCH',
+    botnetChance: 'BOTNET', aptChance: 'APT', rootkitChance: 'ROOTKIT'
   };
   currentLevel.waves.forEach(w => {
     Object.entries(chanceMap).forEach(([field, type]) => {
