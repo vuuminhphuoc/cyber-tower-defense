@@ -116,7 +116,7 @@ function tryTower(row, col) {
   }
 
   const tower = new Tower(col, row, selectedTowerKey);
-  if (tower.cfg.baseOnProxy && cell.cellType === 'data_stream') {
+  if (selectedTowerKey === 'PROXY_NODE' && cell.cellType === 'water') {
     cell.baseTower = tower;
   } else {
     cell.tower = tower;
@@ -140,6 +140,7 @@ canvas.addEventListener('click', (e) => {
   for (let i = tokens.length - 1; i >= 0; i--) {
     if (tokens[i].isClicked(px, py)) {
       credits += tokens[i].value;
+      spawnCollectAnim(tokens[i].x, tokens[i].y, '💰', 50, 10, tokens[i].value);
       tokens[i].markedForDeletion = true;
       Sound.tokenCollect();
       updateCardsUI();
@@ -150,6 +151,7 @@ canvas.addEventListener('click', (e) => {
   for (let i = coins.length - 1; i >= 0; i--) {
     if (coins[i].isClicked(px, py)) {
       collectCoin(coins[i]);
+      spawnCollectAnim(coins[i].x, coins[i].y, coins[i].emoji, 50, 10, coins[i].value);
       coins[i].markedForDeletion = true;
       Sound.coinCollect();
       return;
@@ -451,6 +453,8 @@ function showTowerPanel(tower, px, py) {
     document.getElementById('sell-btn').addEventListener('click', () => {
       if (selectedTower) {
         credits += selectedTower.getSellValue();
+        spawnParticles(selectedTower.centerX(), selectedTower.centerY(), 10, '#ff6600');
+        spawnCollectAnim(selectedTower.centerX(), selectedTower.centerY(), '💰', 50, 10, selectedTower.getSellValue());
         const idx = towers.indexOf(selectedTower);
         if (idx !== -1) towers.splice(idx, 1);
         const cell = grid[selectedTower.row] && grid[selectedTower.row][selectedTower.col];

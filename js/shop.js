@@ -61,7 +61,8 @@ function buyItem(item) {
   }
   // check if unlockRandom has anything to unlock
   if (item.effect.unlockRandom) {
-    const locked = ALL_TOWER_KEYS.filter(k => !saveData.inventory.unlockedTowers.includes(k));
+    const unlocked = Array.isArray(saveData.inventory.unlockedTowers) ? saveData.inventory.unlockedTowers : [];
+    const locked = ALL_TOWER_KEYS.filter(k => !unlocked.includes(k));
     if (locked.length === 0) {
       spawnFloatingText(canvas.width / 2, canvas.height / 2, 'All towers already unlocked!', '#ff3333');
       return;

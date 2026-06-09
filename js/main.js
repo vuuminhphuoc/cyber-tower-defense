@@ -35,6 +35,15 @@ function update(now) {
   particles = particles.filter(p => performance.now() - p.born < p.life);
   floatingTexts = floatingTexts.filter(f => performance.now() - f.born < f.life);
 
+  // update collection animations
+  collectAnims.forEach(a => {
+    const t = Math.min(1, (performance.now() - a.born) / a.life);
+    const ease = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; // ease in-out
+    a.x = a.x + (a.targetX - a.x) * ease * 0.15;
+    a.y = a.y + (a.targetY - a.y) * ease * 0.15;
+  });
+  collectAnims = collectAnims.filter(a => performance.now() - a.born < a.life);
+
   handleCollisions();
   updateWaves(now);
   lawnMowers.forEach(m => m.update());
@@ -78,7 +87,7 @@ function render() {
   towers.forEach(p => p.draw());
   // frozen tower overlay
   towers.forEach(p => {
-    if (p._frozenUntil > performance.now()) {
+    if (p._frozenUntil > gameTime) {
       ctx.save();
       ctx.globalAlpha = 0.3;
       ctx.fillStyle = '#7ec8e3';
@@ -87,10 +96,9 @@ function render() {
     }
   });
   // scanner pulse (single-row only)
-  const now = performance.now();
   towers.forEach(p => {
     if (p.type === 'scanner' && !p.markedForDeletion) {
-      const pulse = Math.sin(now / 300) * 0.15 + 0.15;
+      const pulse = Math.sin(gameTime / 300) * 0.15 + 0.15;
       ctx.save();
       ctx.globalAlpha = pulse;
       ctx.fillStyle = '#00ff41';
@@ -243,6 +251,17 @@ function render() {
     ctx.fillText(f.text, f.x, f.y - age * 30);
     ctx.restore();
   });
+  // draw collection animations (coins/tokens flying to counter)
+  collectAnims.forEach(a => {
+    const age = (performance.now() - a.born) / a.life;
+    ctx.save();
+    ctx.globalAlpha = 1 - age;
+    ctx.font = '24px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(a.emoji, a.x, a.y);
+    ctx.restore();
+  });
   // fog overlay (pulsing)
   if (currentLevel && currentLevel.fogColumns) {
     ctx.save();
@@ -263,7 +282,7 @@ function render() {
       }
     });
     // then draw fog with pulsing alpha
-    const fogPulse = 0.45 + 0.1 * Math.sin(performance.now() / 2000);
+    const fogPulse = 0.45 + 0.1 * Math.sin(gameTime / 2000);
     ctx.globalAlpha = fogPulse;
     ctx.fillStyle = 'rgba(20,20,40,0.8)';
     currentLevel.fogColumns.forEach(col => {
@@ -275,7 +294,7 @@ function render() {
   drawBossHpBar();
 
   // banner wave
-  if (performance.now() < bannerUntil && bannerText) {
+  if (gameTime < bannerUntil && bannerText) {
     ctx.save();
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
@@ -341,7 +360,7 @@ function drawProgressBar() {
   // wave countdown timer (show between waves)
   if (waveStarted && !waveActive && currentWave + 1 < WAVES.length) {
     const nextWaveDelay = WAVES[currentWave + 1].delay || 0;
-    const timeSinceLastWave = performance.now() - lastWaveEndTime;
+    const timeSinceLastWave = gameTime - lastWaveEndTime;
     const remaining = Math.max(0, Math.ceil((nextWaveDelay - timeSinceLastWave) / 1000));
     if (remaining > 0 && nextWaveDelay > 0) {
       ctx.font = 'bold 14px Courier New';

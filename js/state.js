@@ -62,6 +62,16 @@ let skyTokenInterval = 12000;
 let floatingTexts = [];
 let particles = [];
 
+// ===== Collection animations =====
+let collectAnims = [];
+
+function spawnCollectAnim(x, y, emoji, targetX, targetY, value) {
+  collectAnims.push({
+    x, y, emoji, targetX, targetY, value,
+    born: performance.now(), life: 500
+  });
+}
+
 // ===== Hover state (for range preview) =====
 let hoverRow = -1;
 let hoverCol = -1;

@@ -22,7 +22,7 @@ function handleCollisions() {
         z.takeDamage(p.damage);
         // slow effect from Encryption Tower
         if (p.slow && p.slowDuration) {
-          z._slowUntil = performance.now() + p.slowDuration;
+          z._slowUntil = gameTime + p.slowDuration;
           z._slowFactor = p.slow;
         }
         p.markedForDeletion = true;
