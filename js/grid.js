@@ -39,7 +39,29 @@ function initGrid() {
       }
     });
   }
+  // place special terrain cells: [{ row, col, type }]
+  if (currentLevel && currentLevel.terrain) {
+    currentLevel.terrain.forEach(t => {
+      if (grid[t.row] && grid[t.row][t.col]) {
+        grid[t.row][t.col].cellType = t.type;
+        // entangled pairs link two cells: { row, col, type:'entangled', link:{row,col} }
+        if (t.type === 'entangled' && t.link) {
+          grid[t.row][t.col].link = t.link;
+        }
+      }
+    });
+  }
 }
+
+// terrain visual config: fill colors + icon
+const TERRAIN_STYLE = {
+  server_rack:  { a: '#1a1a2e', b: '#20203a', icon: '🖥️', iconColor: '#5af' },
+  overheated:   { a: '#2e1a0a', b: '#3a2010', icon: '🔥', iconColor: '#f73' },
+  signal_delay: { a: '#1a1030', b: '#221540', icon: '📶', iconColor: '#a7f' },
+  uplink:       { a: '#0a2030', b: '#0e2840', icon: '🛰️', iconColor: '#5cf' },
+  quantum:      { a: '#1a0a2e', b: '#22103a', icon: '⚛️', iconColor: '#c5f' },
+  entangled:    { a: '#0a2e2a', b: '#103a35', icon: '🔗', iconColor: '#5fc' }
+};
 
 function drawLawn() {
   const rows = gridRows;
@@ -47,12 +69,15 @@ function drawLawn() {
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < COLS; c++) {
       const cell = grid[r][c];
+      const style = TERRAIN_STYLE[cell.cellType];
       if (cell.cellType === 'water') {
         // data stream — cyan/blue glow
         ctx.fillStyle = (r + c) % 2 === 0 ? '#0a2e4a' : '#0c3555';
       } else if (cell.cellType === 'grave') {
         // corrupted block — red tint
         ctx.fillStyle = (r + c) % 2 === 0 ? '#2a1520' : '#351a28';
+      } else if (style) {
+        ctx.fillStyle = (r + c) % 2 === 0 ? style.a : style.b;
       } else {
         // terminal grid — dark green/black
         ctx.fillStyle = (r + c) % 2 === 0 ? '#0a1a0a' : '#0e220e';
@@ -68,6 +93,17 @@ function drawLawn() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('⚠', gx, gy);
+        ctx.restore();
+      } else if (style) {
+        // draw terrain icon faintly in the corner
+        const gx = c * CELL_W + CELL_W - 14;
+        const gy = TOP_OFFSET + r * ch + 14;
+        ctx.save();
+        ctx.globalAlpha = 0.45;
+        ctx.font = '16px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(style.icon, gx, gy);
         ctx.restore();
       }
     }

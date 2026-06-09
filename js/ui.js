@@ -104,6 +104,12 @@ function sellTower(tower) {
   return true;
 }
 
+// effective terrain for placement: quantum cells act as water when "charged"
+function effectiveCellType(cell) {
+  if (cell.cellType === 'quantum') return cell.quantumWater ? 'water' : 'grass';
+  return cell.cellType;
+}
+
 // ===== Place Tower =====
 function tryTower(row, col) {
   if (!selectedTowerKey) return;
@@ -116,8 +122,9 @@ function tryTower(row, col) {
   const now = performance.now();
   if (towerCooldowns[selectedTowerKey] && now < towerCooldowns[selectedTowerKey]) return;
 
+  const effType = effectiveCellType(cell);
   // water cell rules
-  if (cell.cellType === 'water') {
+  if (effType === 'water') {
     if (selectedTowerKey === 'PROXY_NODE') {
       if (cell.baseTower) {
         spawnFloatingText(col * CELL_W + CELL_W / 2, TOP_OFFSET + row * CELL_H, 'Occupied!', '#f39c12');
@@ -142,18 +149,18 @@ function tryTower(row, col) {
     }
   }
   // grave blocks towering
-  if (cell.cellType === 'grave') {
+  if (effType === 'grave') {
     spawnFloatingText(col * CELL_W + CELL_W / 2, TOP_OFFSET + row * CELL_H, 'Blocked!', '#f39c12');
     return;
   }
   // normal cell: can't have tower (unless water + proxy node already handled)
-  if (cell.cellType !== 'water' && cell.tower) {
+  if (effType !== 'water' && cell.tower) {
     spawnFloatingText(col * CELL_W + CELL_W / 2, TOP_OFFSET + row * CELL_H, 'Occupied!', '#f39c12');
     return;
   }
 
   const tower = new Tower(col, row, selectedTowerKey);
-  if (selectedTowerKey === 'PROXY_NODE' && cell.cellType === 'water') {
+  if (selectedTowerKey === 'PROXY_NODE' && effType === 'water') {
     cell.baseTower = tower;
   } else {
     cell.tower = tower;

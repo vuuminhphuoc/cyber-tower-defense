@@ -131,6 +131,15 @@ class Tower {
     this._placeTime = gameTime; // for placement animation
     this.upgradeLevel = 0;
     this._totalInvested = this.cfg.cost;
+    this._lastOverheat = gameTime;
+    // apply terrain bonuses from the cell this tower sits on
+    const cell = grid[row] && grid[row][col];
+    this._terrain = cell ? cell.cellType : 'grass';
+    if (this._terrain === 'server_rack') {
+      // -15% cooldown => faster fire/production
+      if (this.cfg.fireRate) { this.cfg.fireRate = Math.floor(this.cfg.fireRate * 0.85); this._baseFireRate = this.cfg.fireRate; }
+      if (this.cfg.tokenRate) this.cfg.tokenRate = Math.floor(this.cfg.tokenRate * 0.85);
+    }
   }
 
   centerX() { return this.x + this.width / 2; }
@@ -170,8 +179,29 @@ class Tower {
     return Math.floor(this._totalInvested * 0.5);
   }
 
+  _applyTerrainToProjectile(proj) {
+    // uplink: tower fires faster projectiles (+20%)
+    if (this._terrain === 'uplink') proj.speed *= 1.2;
+    // signal delay lane: any cell in this row of type signal_delay slows projectiles -30%
+    if (grid[this.row] && grid[this.row].some(c => c.cellType === 'signal_delay')) {
+      proj.speed *= 0.7;
+    }
+  }
+
   update(now) {
     if (this._frozenUntil > now) return; // frozen by CryptoLocker
+
+    // overheated terrain: lose HP over time unless a Patch Bot is in range
+    if (this._terrain === 'overheated' && now - this._lastOverheat >= 1000) {
+      this._lastOverheat = now;
+      const cooled = towers.some(p =>
+        p !== this && !p.markedForDeletion && p.type === 'healer' &&
+        p.row === this.row && Math.abs(p.x - this.x) < 2 * CELL_W);
+      if (!cooled) {
+        this.hp -= 2;
+        if (this.hp <= 0) { this.markedForDeletion = true; spawnParticles(this.centerX(), this.centerY(), 8, '#f73'); }
+      }
+    }
 
     if (this.type === 'producer') {
       if (now - this.lastTokenProduced >= this.cfg.tokenRate) {
@@ -192,6 +222,7 @@ class Tower {
         // DDoS Bot: fire multiShot shots in quick succession
         if (this._multiShotCount > 0 && now >= this._multiShotTimer) {
           const proj = new Projectile(this.centerX() + 20, this.centerY() - 8, this.cfg.damage, this.row);
+          this._applyTerrainToProjectile(proj);
           projectiles.push(proj);
           Sound.shoot();
           this._multiShotCount--;
@@ -208,6 +239,7 @@ class Tower {
         this._attackFlash = now;
         const proj = new Projectile(this.centerX() + 20, this.centerY() - 8, this.cfg.damage, this.row);
         if (this.cfg.slow) { proj.slow = this.cfg.slow; proj.slowDuration = this.cfg.slowDuration; }
+        this._applyTerrainToProjectile(proj);
         projectiles.push(proj);
         Sound.shoot();
       }
@@ -885,6 +917,182 @@ class Zomboss {
     ctx.fillText(Math.max(0, Math.ceil(this.hp)) + ' / ' + this.maxHp, cx, by - 4);
   }
 }
+
+// ========== New Bosses (Stage 8/9/10) ==========
+// They reuse the Zomboss state-machine pattern with tuned HP/behaviour.
+
+// Botnet Commander (Stage 8 mini-boss) — shielded while its botnets are alive.
+class BotnetCommander extends Zomboss {
+  constructor() {
+    super();
+    this.name = 'Botnet Commander';
+    this.emoji = '🕸️';
+    this.maxHp = 3000;
+    this.hp = 3000;
+    this.width = 140;
+    this.x = canvas.width - 160;
+    this._lastSummon = gameTime;
+    // spawn 3 botnets immediately
+    for (let i = 0; i < 3; i++) spawnThreatByType('BOTNET', Math.floor(Math.random() * gridRows));
+  }
+  _botnetsAlive() {
+    return threats.some(z => z !== this && !z.markedForDeletion && (z.type === 'BOTNET' || z.type === 'BASIC'));
+  }
+  update() {
+    const now = gameTime;
+    // summon a botnet every 10s
+    if (now - this._lastSummon >= 10000) {
+      this._lastSummon = now;
+      spawnThreatByType('BOTNET', Math.floor(Math.random() * gridRows));
+      spawnFloatingText(canvas.width / 2, 60, 'BOTNET SUMMONED!', '#ff3333');
+      Sound.bossSummon();
+    }
+    // shielded (invulnerable) while botnets alive
+    this.vulnerable = !this._botnetsAlive();
+  }
+  draw() {
+    const cx = this.centerX(), cy = this.centerY();
+    ctx.save();
+    if (!this.vulnerable) {
+      ctx.globalAlpha = 0.25;
+      ctx.beginPath(); ctx.arc(cx, cy, 70, 0, Math.PI * 2);
+      ctx.fillStyle = '#9b59b6'; ctx.fill(); ctx.globalAlpha = 1;
+    }
+    ctx.font = '80px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(this.emoji, cx, cy);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = this.vulnerable ? '#2ecc71' : '#e74c3c';
+    ctx.fillText(this.vulnerable ? '⚡ VULNERABLE' : '🛡️ SHIELDED (kill botnets)', cx, this.y + 12);
+    ctx.restore();
+    this._drawHp(cx);
+  }
+  _drawHp(cx) {
+    const ratio = Math.max(0, this.hp / this.maxHp);
+    const bw = this.width, bx = this.x, by = this.y + this.height - 12;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx, by, bw, 8);
+    ctx.fillStyle = ratio > 0.5 ? '#2ecc71' : ratio > 0.25 ? '#f1c40f' : '#e74c3c';
+    ctx.fillRect(bx, by, bw * ratio, 8);
+    ctx.font = '11px Arial'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+    ctx.fillText(Math.max(0, Math.ceil(this.hp)) + ' / ' + this.maxHp, cx, by - 4);
+  }
+}
+
+// Satellite Hijacker (Stage 9 boss) — disables a random lane + slows projectiles.
+class SatelliteHijacker extends Zomboss {
+  constructor() {
+    super();
+    this.name = 'Satellite Hijacker';
+    this.emoji = '🛰️';
+    this.maxHp = 8000;
+    this.hp = 8000;
+    this._nextAction = gameTime + 3000;
+  }
+  update() {
+    const now = gameTime;
+    if (now < this._nextAction) { this.vulnerable = true; return; }
+    switch (this.state) {
+      case 'IDLE': {
+        const r = Math.random();
+        if (r < 0.45) { this.state = 'JAM'; this.stateTimer = now + 1200; this._jamRow = Math.floor(Math.random() * gridRows); }
+        else if (r < 0.75) { this.state = 'STORM'; this.stateTimer = now + 1200; }
+        else { this.state = 'SUMMON'; this.stateTimer = now + 1200; }
+        this.vulnerable = false;
+        break;
+      }
+      case 'JAM':
+        if (now >= this.stateTimer) {
+          // disable (freeze) all towers in a lane for 5s
+          towers.forEach(p => { if (p.row === this._jamRow && !p.markedForDeletion) p._frozenUntil = now + 5000; });
+          spawnFloatingText(canvas.width / 2, 60, 'LANE JAMMED!', '#a7f');
+          triggerShake(6, 400);
+          this.state = 'IDLE'; this._nextAction = now + 6000; this.vulnerable = true;
+        }
+        break;
+      case 'STORM':
+        if (now >= this.stateTimer) {
+          // signal storm: slow all existing projectiles 50% for 3s (slow new ones via flag)
+          projectiles.forEach(p => p.speed *= 0.5);
+          spawnFloatingText(canvas.width / 2, 60, 'SIGNAL STORM!', '#a7f');
+          this.state = 'IDLE'; this._nextAction = now + 6000; this.vulnerable = true;
+        }
+        break;
+      case 'SUMMON':
+        if (now >= this.stateTimer) {
+          const count = 2 + Math.floor(Math.random() * 2);
+          for (let i = 0; i < count; i++) spawnThreatByType('GLITCH', Math.floor(Math.random() * gridRows));
+          spawnFloatingText(canvas.width / 2, 60, 'QUANTUM WORMS!', '#ff3333');
+          Sound.bossSummon();
+          this.state = 'IDLE'; this._nextAction = now + 6000; this.vulnerable = true;
+        }
+        break;
+    }
+  }
+}
+
+// Quantum Root (Stage 10 final boss) — teleports, enrages, heavy summons.
+class QuantumRoot extends Zomboss {
+  constructor() {
+    super();
+    this.name = 'Quantum Root';
+    this.emoji = '⚛️';
+    this.maxHp = 15000;
+    this.hp = 15000;
+    this._enraged = false;
+    this._lastTeleport = gameTime;
+    this._nextAction = gameTime + 3000;
+  }
+  update() {
+    const now = gameTime;
+    // enrage at 30% HP
+    if (!this._enraged && this.hp <= this.maxHp * 0.3) {
+      this._enraged = true;
+      spawnFloatingText(canvas.width / 2, 60, 'QUANTUM ROOT ENRAGED!', '#c5f');
+      triggerShake(14, 700);
+    }
+    // teleport between lanes every 8s (visual reposition)
+    if (now - this._lastTeleport >= 8000) {
+      this._lastTeleport = now;
+      this.y = 20 + Math.floor(Math.random() * 3) * 20;
+      spawnParticles(this.centerX(), this.centerY(), 20, '#c5f');
+    }
+    if (now < this._nextAction) { this.vulnerable = true; return; }
+    // summon APT + Rootkit pairs
+    const count = this._enraged ? 3 : 2;
+    for (let i = 0; i < count; i++) {
+      spawnThreatByType('APT', Math.floor(Math.random() * gridRows));
+      spawnThreatByType('ROOTKIT', Math.floor(Math.random() * gridRows));
+    }
+    spawnFloatingText(canvas.width / 2, 60, 'APT + ROOTKIT WAVE!', '#ff3333');
+    Sound.bossSummon();
+    this._nextAction = now + (this._enraged ? 5000 : 8000);
+    this.vulnerable = true;
+  }
+  draw() {
+    const cx = this.centerX(), cy = this.centerY();
+    ctx.save();
+    if (this._enraged) { ctx.shadowColor = '#c5f'; ctx.shadowBlur = 25; }
+    ctx.font = '80px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(this.emoji, cx, cy);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = this._enraged ? '#c5f' : '#2ecc71';
+    ctx.fillText(this._enraged ? '🔥 ENRAGED' : '⚛️ QUANTUM CORE', cx, this.y + 12);
+    ctx.restore();
+    const ratio = Math.max(0, this.hp / this.maxHp);
+    const bw = this.width, bx = this.x, by = this.y + this.height - 12;
+    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx, by, bw, 8);
+    ctx.fillStyle = ratio > 0.5 ? '#2ecc71' : ratio > 0.25 ? '#f1c40f' : '#e74c3c';
+    ctx.fillRect(bx, by, bw * ratio, 8);
+    ctx.font = '11px Arial'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+    ctx.fillText(Math.max(0, Math.ceil(this.hp)) + ' / ' + this.maxHp, cx, by - 4);
+  }
+}
+
+const BOSS_CLASSES = {
+  ZERO_DAY: Zomboss,
+  BOTNET_COMMANDER: BotnetCommander,
+  SATELLITE_HIJACKER: SatelliteHijacker,
+  QUANTUM_ROOT: QuantumRoot
+};
 
 function spawnThreatByType(type, row) {
   const z = new Threat(row, type);

@@ -23,6 +23,14 @@ let lastWaveEndTime = 0;
 
 function startWave(index) {
   if (index >= WAVES.length) return;
+  // quantum cells flip their water/grass state each wave
+  if (grid && grid.length) {
+    for (const row of grid) {
+      for (const cell of row) {
+        if (cell.cellType === 'quantum') cell.quantumWater = !cell.quantumWater;
+      }
+    }
+  }
   currentWave = index;
   const w = WAVES[index];
   threatsToSpawn = w.count;
@@ -126,9 +134,11 @@ function showBanner(text) {
 let bossZomboss = null;
 let _bossWinTriggered = false;
 function startBossLevel() {
-  bossZomboss = new Zomboss();
+  const bossKey = (currentLevel && currentLevel.bossType) || 'ZERO_DAY';
+  const BossClass = (typeof BOSS_CLASSES !== 'undefined' && BOSS_CLASSES[bossKey]) || Zomboss;
+  bossZomboss = new BossClass();
   threats.push(bossZomboss);
-  showBanner('ZERO-DAY EXPLOIT DEPLOYED!');
+  showBanner((bossZomboss.name || 'ZERO-DAY EXPLOIT').toUpperCase() + ' DEPLOYED!');
   Sound.hugeWaveAlarm();
 }
 

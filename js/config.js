@@ -295,6 +295,156 @@ const LEVEL_DATABASE = {
       { count: 25, coneChance: 0.7, poleChance: 0.45, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.3, adwareChance: 0.25, cryptolockerChance: 0.25, glitchChance: 0.2, botnetChance: 0.2, aptChance: 0.15 },
       { count: 35, coneChance: 0.75, poleChance: 0.45, bucketChance: 0.45, newspaperChance: 0.4, footballChance: 0.35, spywareChance: 0.35, adwareChance: 0.3, cryptolockerChance: 0.25, glitchChance: 0.25, aptChance: 0.2, rootkitChance: 0.15, huge: true }
     ]
+  },
+
+  // === Stage 8: Server Farm (5 levels — server racks + overheated zones) ===
+  "8-1": {
+    name: "Server Farm - Level 1", stage: 8, gridMode: '5_LANE', initialTokens: 100, tokenSpawnRate: 6000,
+    terrain: [{ row: 1, col: 2, type: 'server_rack' }, { row: 3, col: 2, type: 'server_rack' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 6, coneChance: 0.3, poleChance: 0.2, bucketChance: 0.15 },
+      { count: 10, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.2, newspaperChance: 0.15 },
+      { count: 14, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.25, newspaperChance: 0.2, footballChance: 0.1, huge: true }
+    ]
+  },
+  "8-2": {
+    name: "Server Farm - Level 2", stage: 8, gridMode: '5_LANE', initialTokens: 100, tokenSpawnRate: 6000,
+    terrain: [{ row: 0, col: 4, type: 'overheated' }, { row: 2, col: 4, type: 'overheated' }, { row: 4, col: 4, type: 'overheated' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 8, coneChance: 0.35, poleChance: 0.2, bucketChance: 0.2, newspaperChance: 0.15 },
+      { count: 12, coneChance: 0.45, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, spywareChance: 0.1 },
+      { count: 18, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, footballChance: 0.15, huge: true }
+    ]
+  },
+  "8-3": {
+    name: "Server Farm - Level 3", stage: 8, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
+    terrain: [{ row: 1, col: 2, type: 'server_rack' }, { row: 3, col: 6, type: 'overheated' }, { row: 2, col: 3, type: 'server_rack' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 10, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, botnetChance: 0.1 },
+      { count: 14, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, footballChance: 0.15, botnetChance: 0.15 },
+      { count: 20, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, spywareChance: 0.15, botnetChance: 0.2, huge: true }
+    ]
+  },
+  "8-4": {
+    name: "Server Farm - Level 4", stage: 8, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
+    terrain: [{ row: 0, col: 3, type: 'overheated' }, { row: 2, col: 2, type: 'server_rack' }, { row: 4, col: 3, type: 'overheated' }, { row: 2, col: 6, type: 'overheated' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 12, coneChance: 0.45, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, aptChance: 0.1, rootkitChance: 0.05 },
+      { count: 16, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, aptChance: 0.15, rootkitChance: 0.1 },
+      { count: 22, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, aptChance: 0.2, rootkitChance: 0.15, huge: true }
+    ]
+  },
+  "8-5": {
+    name: "Server Farm - Mini-Boss", stage: 8, gridMode: '5_LANE', initialTokens: 150, tokenSpawnRate: 5000,
+    bossLevel: true, bossType: 'BOTNET_COMMANDER',
+    terrain: [{ row: 1, col: 2, type: 'server_rack' }, { row: 3, col: 2, type: 'server_rack' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [{ count: 0, boss: true }]
+  },
+
+  // === Stage 9: Satellite Network (5 levels — signal delay + uplink nodes) ===
+  "9-1": {
+    name: "Satellite Net - Level 1", stage: 9, gridMode: '5_LANE', initialTokens: 100, tokenSpawnRate: 6000,
+    terrain: [{ row: 2, col: 4, type: 'signal_delay' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 8, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.2, newspaperChance: 0.15 },
+      { count: 12, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.25, newspaperChance: 0.2, footballChance: 0.1 },
+      { count: 16, coneChance: 0.55, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, footballChance: 0.15, glitchChance: 0.1, huge: true }
+    ]
+  },
+  "9-2": {
+    name: "Satellite Net - Level 2", stage: 9, gridMode: '5_LANE', initialTokens: 100, tokenSpawnRate: 6000,
+    terrain: [{ row: 1, col: 1, type: 'uplink' }, { row: 3, col: 1, type: 'uplink' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 10, coneChance: 0.45, poleChance: 0.3, bucketChance: 0.25, newspaperChance: 0.2, glitchChance: 0.1 },
+      { count: 14, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, footballChance: 0.15, glitchChance: 0.15 },
+      { count: 20, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, glitchChance: 0.2, huge: true }
+    ]
+  },
+  "9-3": {
+    name: "Satellite Net - Level 3", stage: 9, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
+    fogColumns: [5, 6, 7, 8],
+    terrain: [{ row: 0, col: 3, type: 'signal_delay' }, { row: 4, col: 3, type: 'signal_delay' }, { row: 2, col: 1, type: 'uplink' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 12, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, aptChance: 0.1, glitchChance: 0.15 },
+      { count: 16, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, aptChance: 0.15, glitchChance: 0.2 },
+      { count: 22, coneChance: 0.6, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, aptChance: 0.2, glitchChance: 0.25, huge: true }
+    ]
+  },
+  "9-4": {
+    name: "Satellite Net - Level 4", stage: 9, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
+    terrain: [{ row: 1, col: 4, type: 'signal_delay' }, { row: 3, col: 4, type: 'signal_delay' }, { row: 2, col: 1, type: 'uplink' }, { row: 0, col: 1, type: 'uplink' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 14, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, glitchChance: 0.2, aptChance: 0.15 },
+      { count: 18, coneChance: 0.6, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, glitchChance: 0.25, rootkitChance: 0.1 },
+      { count: 24, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.3, footballChance: 0.3, glitchChance: 0.3, aptChance: 0.2, rootkitChance: 0.15, huge: true }
+    ]
+  },
+  "9-5": {
+    name: "Satellite Net - Boss", stage: 9, gridMode: '5_LANE', initialTokens: 200, tokenSpawnRate: 5000,
+    bossLevel: true, bossType: 'SATELLITE_HIJACKER',
+    terrain: [{ row: 2, col: 1, type: 'uplink' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [{ count: 0, boss: true }]
+  },
+
+  // === Stage 10: Quantum Core (5 levels — quantum cells + entangled pairs) ===
+  "10-1": {
+    name: "Quantum Core - Level 1", stage: 10, gridMode: '5_LANE', initialTokens: 125, tokenSpawnRate: 5500,
+    terrain: [{ row: 2, col: 4, type: 'quantum' }, { row: 1, col: 5, type: 'quantum' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 10, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, aptChance: 0.1 },
+      { count: 14, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, aptChance: 0.15 },
+      { count: 18, coneChance: 0.6, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, aptChance: 0.2, glitchChance: 0.2 },
+      { count: 24, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.3, footballChance: 0.3, aptChance: 0.2, rootkitChance: 0.15, huge: true }
+    ]
+  },
+  "10-2": {
+    name: "Quantum Core - Level 2", stage: 10, gridMode: '5_LANE', initialTokens: 125, tokenSpawnRate: 5500,
+    terrain: [{ row: 1, col: 3, type: 'entangled', link: { row: 3, col: 3 } }, { row: 3, col: 3, type: 'entangled', link: { row: 1, col: 3 } }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 12, coneChance: 0.5, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, aptChance: 0.1, rootkitChance: 0.05 },
+      { count: 16, coneChance: 0.6, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.25, footballChance: 0.2, aptChance: 0.15, rootkitChance: 0.1 },
+      { count: 20, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, aptChance: 0.2, rootkitChance: 0.15 },
+      { count: 26, coneChance: 0.7, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.3, footballChance: 0.3, aptChance: 0.2, rootkitChance: 0.2, huge: true }
+    ]
+  },
+  "10-3": {
+    name: "Quantum Core - Level 3", stage: 10, gridMode: '6_LANE_POOL', initialTokens: 100, tokenSpawnRate: 5000,
+    terrain: [{ row: 1, col: 5, type: 'quantum' }, { row: 4, col: 5, type: 'quantum' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 14, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, aptChance: 0.15 },
+      { count: 18, coneChance: 0.6, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, glitchChance: 0.2, aptChance: 0.2, rootkitChance: 0.15 },
+      { count: 26, coneChance: 0.7, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, spywareChance: 0.25, glitchChance: 0.25, aptChance: 0.2, rootkitChance: 0.2, huge: true }
+    ]
+  },
+  "10-4": {
+    name: "Quantum Core - Level 4", stage: 10, gridMode: '5_LANE', initialTokens: 150, tokenSpawnRate: 5000,
+    terrain: [{ row: 2, col: 4, type: 'quantum' }, { row: 0, col: 3, type: 'entangled', link: { row: 4, col: 3 } }, { row: 4, col: 3, type: 'entangled', link: { row: 0, col: 3 } }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [
+      { count: 16, coneChance: 0.6, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, aptChance: 0.2, rootkitChance: 0.15 },
+      { count: 22, coneChance: 0.65, poleChance: 0.4, bucketChance: 0.4, newspaperChance: 0.35, footballChance: 0.3, glitchChance: 0.25, aptChance: 0.25, rootkitChance: 0.2 },
+      { count: 30, coneChance: 0.75, poleChance: 0.45, bucketChance: 0.45, newspaperChance: 0.4, footballChance: 0.35, glitchChance: 0.3, aptChance: 0.25, rootkitChance: 0.2, huge: true }
+    ]
+  },
+  "10-5": {
+    name: "Quantum Core - Final Boss", stage: 10, gridMode: '5_LANE', initialTokens: 250, tokenSpawnRate: 4500,
+    bossLevel: true, bossType: 'QUANTUM_ROOT',
+    terrain: [{ row: 2, col: 1, type: 'uplink' }, { row: 0, col: 2, type: 'server_rack' }, { row: 4, col: 2, type: 'server_rack' }],
+    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    waves: [{ count: 0, boss: true }]
   }
 };
 
@@ -305,6 +455,9 @@ const LEVEL_ORDER = [
   '4-1','4-2','4-3',
   '5-10',
   '6-1','6-2',
-  '7-1','7-2'
+  '7-1','7-2',
+  '8-1','8-2','8-3','8-4','8-5',
+  '9-1','9-2','9-3','9-4','9-5',
+  '10-1','10-2','10-3','10-4','10-5'
 ];
-const STAGE_EMOJI = { 1: '🧱', 2: '🕸️', 3: '📡', 4: '🔐', 5: '💀', 6: '☁️', 7: '🛡️' };
+const STAGE_EMOJI = { 1: '🧱', 2: '🕸️', 3: '📡', 4: '🔐', 5: '💀', 6: '☁️', 7: '🛡️', 8: '🖥️', 9: '🛰️', 10: '⚛️' };

@@ -55,6 +55,20 @@ function update(now) {
 }
 
 function cleanupEntities() {
+  // entangled pairs: destroying a tower on one cell destroys the linked one too
+  for (const p of towers) {
+    if (!p.markedForDeletion) continue;
+    const cell = grid[p.row] && grid[p.row][p.col];
+    if (cell && cell.cellType === 'entangled' && cell.link) {
+      const linked = grid[cell.link.row] && grid[cell.link.row][cell.link.col];
+      const lt = linked && (linked.tower || linked.baseTower);
+      if (lt && !lt.markedForDeletion) {
+        lt.markedForDeletion = true;
+        spawnParticles(lt.centerX(), lt.centerY(), 10, '#5fc');
+        spawnFloatingText(lt.centerX(), lt.y - 10, 'ENTANGLED!', '#5fc');
+      }
+    }
+  }
   // remove towers from grid before filtering
   for (const p of towers) {
     if (p.markedForDeletion && grid[p.row] && grid[p.row][p.col]) {
@@ -387,7 +401,7 @@ function drawBossHpBar() {
   ctx.fillStyle = '#fff';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Zero-Day Exploit — ' + Math.max(0, Math.ceil(bossZomboss.hp)) + ' HP', canvas.width / 2, by + bh / 2);
+  ctx.fillText((bossZomboss.name || 'Zero-Day Exploit') + ' — ' + Math.max(0, Math.ceil(bossZomboss.hp)) + ' HP', canvas.width / 2, by + bh / 2);
   ctx.restore();
 }
 

@@ -65,7 +65,7 @@ function fail(message, details) {
       bugButton: !!document.getElementById('bug-report-btn')
     }));
 
-    if (boot.levels !== 20) fail('Unexpected level count', JSON.stringify(boot, null, 2));
+    if (boot.levels !== 35) fail('Unexpected level count', JSON.stringify(boot, null, 2));
     if (boot.towers !== 18) fail('Unexpected tower count', JSON.stringify(boot, null, 2));
     if (boot.threats !== 14) fail('Unexpected threat count', JSON.stringify(boot, null, 2));
     if (!boot.bugButton) fail('Bug report button missing');
@@ -143,6 +143,30 @@ function fail(message, details) {
         if (proxyResult.base !== 'PROXY_NODE' || proxyResult.tower !== 'FIREWALL') {
           fail(levelId + ' Proxy Node placement failed', JSON.stringify(proxyResult, null, 2));
         }
+      }
+
+      // boss levels: force the boss to spawn and tick it a few times
+      if (result.bossLevel) {
+        const bossResult = await page.evaluate(() => {
+          gameStartTime = 0;
+          waveStarted = false;
+          gameTime += 6000;
+          updateWaves(gameTime);
+          for (let i = 0; i < 30; i++) {
+            deltaTime = 16.67;
+            gameTime += deltaTime;
+            update(gameTime);
+            render();
+          }
+          return {
+            bossType: currentLevel.bossType || 'ZERO_DAY',
+            created: !!bossZomboss,
+            bossName: bossZomboss ? bossZomboss.name : null,
+            bossHp: bossZomboss ? bossZomboss.hp : null
+          };
+        }, levelId);
+        if (!bossResult.created) fail(levelId + ' boss not created', JSON.stringify(bossResult, null, 2));
+        console.log('   boss:', bossResult.bossName || bossResult.bossType, '(' + bossResult.bossHp + ' HP)');
       }
 
       if (pageErrors.length || consoleErrors.length) {
