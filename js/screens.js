@@ -98,6 +98,21 @@ function showScreen(state) {
 function goToMenu() {
   saveData = SaveManager.load();
   Sound.bgmStop();
+  // reset match state so the next level starts clean (prevents stale win/loss
+  // flags blocking input and old towers lingering on screen)
+  gameOver = false;
+  gameWon = false;
+  gamePaused = false;
+  towers = [];
+  threats = [];
+  projectiles = [];
+  tokens = [];
+  coins = [];
+  selectedTowerKey = null;
+  // clear the canvas so no stale frame is shown behind the menu
+  if (typeof ctx !== 'undefined' && ctx) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
   buildMenu();
   showScreen(GAME_STATE.MENU);
 }
@@ -280,5 +295,8 @@ function startLevel() {
   buildCards();
   updateCardsUI();
   showScreen(GAME_STATE.PLAYING);
+  // force one synchronous render so the fresh, empty board is painted
+  // immediately instead of showing a stale frame from the previous match
+  render();
   Sound.bgmStart();
 }
