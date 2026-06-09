@@ -66,6 +66,18 @@ let particles = [];
 let hoverRow = -1;
 let hoverCol = -1;
 
+// ===== Deferred spawn queue (for Botnet swarm) =====
+let deferredSpawns = [];
+function queueThreatSpawn(type, row) {
+  deferredSpawns.push({ type, row });
+}
+function processDeferredSpawns() {
+  while (deferredSpawns.length > 0) {
+    const s = deferredSpawns.shift();
+    spawnThreatByType(s.type, s.row);
+  }
+}
+
 function spawnFloatingText(x, y, text, color) {
   floatingTexts.push({ x, y, text, color: color || '#e74c3c', born: performance.now(), life: 1200 });
 }

@@ -22,6 +22,7 @@ function update(now) {
   coins.forEach(c => c.update());
   towers.forEach(p => p.update(now));
   threats.forEach(z => z.update());
+  processDeferredSpawns(); // process any Botnet swarm spawns
   projectiles.forEach(p => p.update());
 
   // update particles

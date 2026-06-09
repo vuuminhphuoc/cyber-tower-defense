@@ -128,6 +128,7 @@ class Tower {
     this._baseFireRate = this.cfg.fireRate || 1500;
     this._adwareSlowUntil = 0;
     this._attackFlash = 0;
+    this._placeTime = gameTime; // for placement animation
     this.upgradeLevel = 0;
     this._totalInvested = this.cfg.cost;
   }
@@ -358,6 +359,14 @@ class Tower {
     ctx.font = '54px serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+    // placement scale animation
+    const age = gameTime - this._placeTime;
+    const scale = age < 300 ? 0.5 + 0.5 * (age / 300) : 1;
+    if (scale !== 1) {
+      ctx.translate(this.centerX(), this.centerY() + 4);
+      ctx.scale(scale, scale);
+      ctx.translate(-this.centerX(), -(this.centerY() + 4));
+    }
     if (this.type === 'mine' && !this._armed) ctx.globalAlpha = 0.35;
     if (this.type === 'chomper' && this._chewing) ctx.globalAlpha = 0.6;
     if (this._cloaked) ctx.globalAlpha = 0.4;
@@ -451,6 +460,7 @@ class Threat {
     this.height = 80;
     this.type = type;
     const cfg = THREAT_TYPES[type] || THREAT_TYPES.BASIC;
+    this.cfg = cfg; // store reference for death explosion
     this.maxHp = cfg.hp;
     this.hp = cfg.hp;
     this.speed = cfg.speed;
@@ -468,14 +478,13 @@ class Threat {
     this._lastStealTime = 0;
     this.bornAt = gameTime;
     // APT cloaking
+    this._cloaked = false;
     this._cloakUntil = gameTime + (cfg.cloakTime || 0);
     // Rootkit hijack
     this._hijackedTower = null;
     this._hijackUntil = 0;
     // Botnet swarm
-    if (type === 'BOTNET' && cfg.swarmCount) {
-      this._swarmSpawned = false;
-    }
+    this._swarmSpawned = false;
   }
 
   centerX() { return this.x + this.width / 2; }
@@ -574,7 +583,7 @@ class Threat {
       this._cloaked = false;
     }
 
-    // Rootkit hijacking: damage own towers when eating
+    // Rootkit hijacking: freeze tower and deal damage over time
     if (this.type === 'ROOTKIT' && this.isEating && target && !target.markedForDeletion) {
       if (this._hijackedTower !== target) {
         this._hijackedTower = target;
@@ -583,14 +592,19 @@ class Threat {
         spawnFloatingText(target.centerX(), target.y - 10, 'HIJACKED!', '#ff00ff');
         Sound.cryptolockerFreeze();
       }
+      // deal 20 damage per second to hijacked tower while rootkit is alive
+      if (!this.markedForDeletion) {
+        target.hp -= 20 * dt / 60;
+        if (target.hp <= 0) target.markedForDeletion = true;
+      }
     }
 
-    // Botnet swarm: spawn extra threats when first appearing
+    // Botnet swarm: queue extra threats when first appearing
     if (this.type === 'BOTNET' && !this._swarmSpawned && this.x < canvas.width - 50) {
       this._swarmSpawned = true;
       const count = (THREAT_TYPES.BOTNET.swarmCount || 3) - 1; // -1 because this one already exists
       for (let i = 0; i < count; i++) {
-        spawnThreatByType('BASIC', this.row);
+        queueThreatSpawn('BASIC', this.row);
       }
     }
   }
@@ -631,12 +645,14 @@ class Threat {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     if (this._slowUntil > gameTime) ctx.globalAlpha = 0.7;
+    // walking bob animation
+    const bob = this.isEating ? 0 : Math.sin(gameTime / 200 + this.row * 1.5) * 2;
     // draw threat-specific emoji
     const cfg = THREAT_TYPES[this.type];
-    ctx.fillText(cfg ? cfg.emoji : '🦠', cx, cy + 6);
+    ctx.fillText(cfg ? cfg.emoji : '🦠', cx, cy + 6 + bob);
     if (cfg && cfg.hat) {
       ctx.font = '22px serif';
-      ctx.fillText(cfg.hat, cx, this.y - 2);
+      ctx.fillText(cfg.hat, cx, this.y - 2 + bob);
     }
     if (this.isFlag) {
       ctx.font = '22px serif';
