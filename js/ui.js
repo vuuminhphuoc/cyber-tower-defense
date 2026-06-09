@@ -67,6 +67,43 @@ function updateCardsUI() {
   });
 }
 
+function collectToken(token) {
+  if (!token || token.markedForDeletion) return false;
+  credits += token.value;
+  spawnCollectAnim(token.x, token.y, '💰', 50, 10, token.value);
+  token.markedForDeletion = true;
+  Sound.tokenCollect();
+  updateCardsUI();
+  return true;
+}
+
+function collectCoinEntity(coin) {
+  if (!coin || coin.markedForDeletion) return false;
+  collectCoin(coin);
+  spawnCollectAnim(coin.x, coin.y, coin.emoji, 50, 10, coin.value);
+  coin.markedForDeletion = true;
+  Sound.coinCollect();
+  return true;
+}
+
+function sellTower(tower) {
+  if (!tower) return false;
+  const sellValue = tower.getSellValue();
+  credits += sellValue;
+  spawnParticles(tower.centerX(), tower.centerY(), 10, '#ff6600');
+  spawnCollectAnim(tower.centerX(), tower.centerY(), '💰', 50, 10, sellValue);
+  const idx = towers.indexOf(tower);
+  if (idx !== -1) towers.splice(idx, 1);
+  const cell = grid[tower.row] && grid[tower.row][tower.col];
+  if (cell) {
+    if (cell.tower === tower) cell.tower = null;
+    if (cell.baseTower === tower) cell.baseTower = null;
+  }
+  Sound.towerPlace();
+  updateCardsUI();
+  return true;
+}
+
 // ===== Place Tower =====
 function tryTower(row, col) {
   if (!selectedTowerKey) return;
@@ -139,21 +176,14 @@ canvas.addEventListener('click', (e) => {
     // prioritize token collection (iterate backwards to pick top-most)
   for (let i = tokens.length - 1; i >= 0; i--) {
     if (tokens[i].isClicked(px, py)) {
-      credits += tokens[i].value;
-      spawnCollectAnim(tokens[i].x, tokens[i].y, '💰', 50, 10, tokens[i].value);
-      tokens[i].markedForDeletion = true;
-      Sound.tokenCollect();
-      updateCardsUI();
+      collectToken(tokens[i]);
       return;
     }
   }
   // collect coins
   for (let i = coins.length - 1; i >= 0; i--) {
     if (coins[i].isClicked(px, py)) {
-      collectCoin(coins[i]);
-      spawnCollectAnim(coins[i].x, coins[i].y, coins[i].emoji, 50, 10, coins[i].value);
-      coins[i].markedForDeletion = true;
-      Sound.coinCollect();
+      collectCoinEntity(coins[i]);
       return;
     }
   }
@@ -165,17 +195,9 @@ canvas.addEventListener('click', (e) => {
       const cell = grid[c.row][c.col];
       // remove top tower first, then lily pad
       if (cell.tower) {
-        const idx = towers.indexOf(cell.tower);
-        if (idx !== -1) towers.splice(idx, 1);
-        credits += cell.tower.getSellValue();
-        cell.tower = null;
-        Sound.towerPlace();
+        sellTower(cell.tower);
       } else if (cell.baseTower) {
-        const idx = towers.indexOf(cell.baseTower);
-        if (idx !== -1) towers.splice(idx, 1);
-        credits += cell.baseTower.getSellValue();
-        cell.baseTower = null;
-        Sound.towerPlace();
+        sellTower(cell.baseTower);
       }
     }
     shovelActive = false;
@@ -200,17 +222,12 @@ canvas.addEventListener('mousemove', (e) => {
   else { hoverRow = -1; hoverCol = -1; }
   for (let i = tokens.length - 1; i >= 0; i--) {
     if (tokens[i].isClicked(px, py)) {
-      credits += tokens[i].value;
-      tokens[i].markedForDeletion = true;
-      Sound.tokenCollect();
-      updateCardsUI();
+      collectToken(tokens[i]);
     }
   }
   for (let i = coins.length - 1; i >= 0; i--) {
     if (coins[i].isClicked(px, py)) {
-      collectCoin(coins[i]);
-      coins[i].markedForDeletion = true;
-      Sound.coinCollect();
+      collectCoinEntity(coins[i]);
     }
   }
 });
@@ -219,6 +236,7 @@ canvas.addEventListener('mouseleave', () => { hoverRow = -1; hoverCol = -1; });
 function collectCoin(coin) {
   if (coin.kind === 'diamond') saveData.wallet.diamonds += 1;
   else saveData.wallet.coins += coin.value;
+  SaveManager.save(saveData);
 }
 
 // ===== Right-click to deselect =====
@@ -338,18 +356,13 @@ canvas.addEventListener('touchend', (e) => {
   // collect tokens/coins on tap
   for (let i = tokens.length - 1; i >= 0; i--) {
     if (tokens[i].isClicked(px, py)) {
-      credits += tokens[i].value;
-      tokens[i].markedForDeletion = true;
-      Sound.tokenCollect();
-      updateCardsUI();
+      collectToken(tokens[i]);
       return;
     }
   }
   for (let i = coins.length - 1; i >= 0; i--) {
     if (coins[i].isClicked(px, py)) {
-      collectCoin(coins[i]);
-      coins[i].markedForDeletion = true;
-      Sound.coinCollect();
+      collectCoinEntity(coins[i]);
       return;
     }
   }
@@ -359,17 +372,9 @@ canvas.addEventListener('touchend', (e) => {
     if (c && grid[c.row] && grid[c.row][c.col]) {
       const cell = grid[c.row][c.col];
       if (cell.tower) {
-        const idx = towers.indexOf(cell.tower);
-        if (idx !== -1) towers.splice(idx, 1);
-        credits += cell.tower.getSellValue();
-        cell.tower = null;
-        Sound.towerPlace();
+        sellTower(cell.tower);
       } else if (cell.baseTower) {
-        const idx = towers.indexOf(cell.baseTower);
-        if (idx !== -1) towers.splice(idx, 1);
-        credits += cell.baseTower.getSellValue();
-        cell.baseTower = null;
-        Sound.towerPlace();
+        sellTower(cell.baseTower);
       }
     }
     shovelActive = false;
@@ -452,19 +457,8 @@ function showTowerPanel(tower, px, py) {
     towerPanelSell.innerHTML = '<button id="sell-btn" style="background:#ff6600;color:#fff;border:none;padding:4px 10px;cursor:pointer;font-size:12px;border-radius:3px;">🗑 Sell (💰' + sellVal + ')</button>';
     document.getElementById('sell-btn').addEventListener('click', () => {
       if (selectedTower) {
-        credits += selectedTower.getSellValue();
-        spawnParticles(selectedTower.centerX(), selectedTower.centerY(), 10, '#ff6600');
-        spawnCollectAnim(selectedTower.centerX(), selectedTower.centerY(), '💰', 50, 10, selectedTower.getSellValue());
-        const idx = towers.indexOf(selectedTower);
-        if (idx !== -1) towers.splice(idx, 1);
-        const cell = grid[selectedTower.row] && grid[selectedTower.row][selectedTower.col];
-        if (cell) {
-          if (cell.tower === selectedTower) cell.tower = null;
-          if (cell.baseTower === selectedTower) cell.baseTower = null;
-        }
-        Sound.towerPlace();
+        sellTower(selectedTower);
         hideTowerPanel();
-        updateCardsUI();
       }
     });
   }
