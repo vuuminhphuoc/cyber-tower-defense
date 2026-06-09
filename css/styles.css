@@ -297,3 +297,11 @@ kbd {
 }
 .btn:disabled, .btn.disabled { pointer-events: none; }
 .ui-tool-btn:active { transform: scale(0.95); }
+
+/* Bug Report */
+#bug-report-btn:hover { color: #00ff41 !important; }
+#bug-modal input:focus, #bug-modal textarea:focus {
+  outline: none;
+  border-color: #00ff41;
+  box-shadow: 0 0 6px rgba(0,255,65,0.3);
+}

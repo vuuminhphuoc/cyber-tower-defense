@@ -132,8 +132,29 @@
     <p>Fan-made tower defense game — Original gameplay, not affiliated with any existing franchise</p>
     <p>Source code: <a href="https://github.com/vuuminhphuoc/cyber-tower-defense" target="_blank" rel="noopener">GitHub</a>
        · Author: <a href="https://vuuminhphuoc-portfolio.netlify.app/" target="_blank" rel="noopener">Phước</a>
+       · <button id="bug-report-btn" style="background:none;border:none;color:#00cc33;cursor:pointer;text-decoration:underline;font:inherit;">Report Bug</button>
     </p>
   </footer>
+
+  <!-- ===== BUG REPORT MODAL ===== -->
+  <div id="bug-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:9999; display:none; justify-content:center; align-items:center;">
+    <div style="background:#111820; border:2px solid #00ff41; border-radius:8px; padding:20px; max-width:420px; width:90%; color:#00cc33; font-family:Courier New,monospace;">
+      <h3 style="margin:0 0 12px; color:#00ff41;">🐛 Report a Bug</h3>
+      <label style="display:block; margin-bottom:8px; font-size:13px;">
+        Title *
+        <input id="bug-title" type="text" placeholder="Short description of the bug" style="width:100%; margin-top:4px; padding:6px; background:#1a2230; border:1px solid #00cc33; color:#00ff41; border-radius:4px; font-family:inherit; font-size:13px; box-sizing:border-box;" />
+      </label>
+      <label style="display:block; margin-bottom:8px; font-size:13px;">
+        Description *
+        <textarea id="bug-desc" rows="4" placeholder="What happened? What did you expect?" style="width:100%; margin-top:4px; padding:6px; background:#1a2230; border:1px solid #00cc33; color:#00ff41; border-radius:4px; font-family:inherit; font-size:13px; box-sizing:border-box; resize:vertical;"></textarea>
+      </label>
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button id="bug-submit" class="btn" style="flex:1;">Submit</button>
+        <button id="bug-cancel" class="btn btn-secondary" style="flex:1;">Cancel</button>
+      </div>
+      <p style="font-size:11px; color:#666; margin-top:10px; margin-bottom:0;">Opens GitHub with pre-filled info. Game state (level, wave, score) is auto-attached.</p>
+    </div>
+  </div>
 
   <!-- JS modules loaded in dependency order. main.js must load LAST. -->
   <script src="js/config.js"></script>

@@ -428,3 +428,57 @@ function loop(timestamp) {
 // ===== Bootstrap =====
 goToMenu();
 requestAnimationFrame(loop);
+
+// ===== Bug Report =====
+(function initBugReport() {
+  const modal = document.getElementById('bug-modal');
+  const btn = document.getElementById('bug-report-btn');
+  const submitBtn = document.getElementById('bug-submit');
+  const cancelBtn = document.getElementById('bug-cancel');
+  const titleInput = document.getElementById('bug-title');
+  const descInput = document.getElementById('bug-desc');
+
+  if (!btn || !modal) return;
+
+  btn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+    titleInput.value = '';
+    descInput.value = '';
+    titleInput.focus();
+  });
+
+  cancelBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+  modal.addEventListener('click', (e) => { if (e.target === modal) modal.style.display = 'none'; });
+
+  submitBtn.addEventListener('click', () => {
+    const title = titleInput.value.trim();
+    const desc = descInput.value.trim();
+    if (!title) { titleInput.focus(); return; }
+
+    // gather game state
+    const state = [];
+    state.push('**Game State**');
+    state.push('- Level: ' + (currentLevelId || 'N/A'));
+    state.push('- Level Name: ' + (currentLevel ? currentLevel.name : 'N/A'));
+    state.push('- Wave: ' + (waveStarted ? (currentWave + 1) + '/' + WAVES.length : 'Not started'));
+    state.push('- Score: ' + score);
+    state.push('- Credits: ' + credits);
+    state.push('- Towers placed: ' + towers.length);
+    state.push('- Threats alive: ' + threats.length);
+    state.push('- Game Speed: ' + gameSpeed + 'x');
+    state.push('- Game Over: ' + gameOver);
+    state.push('- Game Won: ' + gameWon);
+    state.push('');
+    state.push('**User Description**');
+    state.push(desc || '(none)');
+
+    const body = state.join('\n');
+    const url = 'https://github.com/vuuminhphuoc/cyber-tower-defense/issues/new'
+      + '?title=' + encodeURIComponent('[Bug] ' + title)
+      + '&body=' + encodeURIComponent(body)
+      + '&labels=' + encodeURIComponent('bug');
+
+    window.open(url, '_blank');
+    modal.style.display = 'none';
+  });
+})();
