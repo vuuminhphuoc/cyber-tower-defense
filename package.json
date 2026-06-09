@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "test": "node puppeteer-test.js",
+    "syntax": "node -c js/config.js && node -c js/save.js && node -c js/state.js && node -c js/grid.js && node -c js/audio.js && node -c js/entities.js && node -c js/combat.js && node -c js/waves.js && node -c js/ui.js && node -c js/screens.js && node -c js/shop.js && node -c js/almanac.js && node -c js/main.js"
+  },
   "dependencies": {
     "express": "^5.2.1",
     "puppeteer": "^25.1.0"

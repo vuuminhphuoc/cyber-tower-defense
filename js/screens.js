@@ -241,6 +241,8 @@ function startLevel() {
   coins = [];
   floatingTexts = [];
   particles = [];
+  collectAnims = [];
+  deferredSpawns = [];
   selectedTowerKey = null;
   towerCooldowns = {};
   gamePaused = false;
@@ -255,6 +257,7 @@ function startLevel() {
   waveActive = false;
   waveStarted = false;
   nextWaveAt = 0;
+  lastWaveEndTime = 0;
   bannerText = '';
   bannerUntil = 0;
   seedPacketReward = null;

@@ -1,5 +1,4 @@
 node_modules/
 test-server.js
-puppeteer-test.js
 test-screenshot.png
 .netlify/
