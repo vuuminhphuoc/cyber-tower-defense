@@ -19,6 +19,7 @@ let waveStartDelay = 12000;
 let gameStartTime = 0;
 let waveStarted = false;
 let nextWaveAt = 0;
+let lastWaveEndTime = 0;
 
 function startWave(index) {
   if (index >= WAVES.length) return;
@@ -100,6 +101,7 @@ function updateWaves(now) {
     }
     if (threatsSpawnedThisWave >= threatsToSpawn && threats.length === 0) {
       waveActive = false;
+      lastWaveEndTime = now;
       if (currentWave + 1 < WAVES.length) {
         showBanner('WAVE CLEARED — Next wave incoming...');
         nextWaveAt = now + 5000;

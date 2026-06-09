@@ -85,3 +85,14 @@ function spawnParticles(x, y, count, color) {
     });
   }
 }
+
+// ===== Screen Shake =====
+let shakeIntensity = 0;
+let shakeDuration = 0;
+let shakeStart = 0;
+
+function triggerShake(intensity, duration) {
+  shakeIntensity = intensity;
+  shakeDuration = duration;
+  shakeStart = performance.now();
+}

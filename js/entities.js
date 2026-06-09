@@ -127,6 +127,7 @@ class Tower {
     this._frozenUntil = 0;
     this._baseFireRate = this.cfg.fireRate || 1500;
     this._adwareSlowUntil = 0;
+    this._attackFlash = 0;
     this.upgradeLevel = 0;
     this._totalInvested = this.cfg.cost;
   }
@@ -196,11 +197,13 @@ class Tower {
         }
         if (hasTarget && this._multiShotCount === 0 && now - this.lastFired >= effectiveFireRate) {
           this.lastFired = now;
+          this._attackFlash = now;
           this._multiShotCount = this.cfg.multiShot || 2;
           this._multiShotTimer = now;
         }
       } else if (hasTarget && now - this.lastFired >= effectiveFireRate) {
         this.lastFired = now;
+        this._attackFlash = now;
         const proj = new Projectile(this.centerX() + 20, this.centerY() - 8, this.cfg.damage, this.row);
         if (this.cfg.slow) { proj.slow = this.cfg.slow; proj.slowDuration = this.cfg.slowDuration; }
         projectiles.push(proj);
@@ -356,10 +359,24 @@ class Tower {
     if (this.type === 'chomper' && this._chewing) ctx.globalAlpha = 0.6;
     if (this._cloaked) ctx.globalAlpha = 0.4;
     if (this._frozenUntil > gameTime) { ctx.globalAlpha = 0.5; ctx.fillStyle = '#7ec8e3'; }
+    // attack flash effect
+    if (this._attackFlash && gameTime - this._attackFlash < 120) {
+      ctx.shadowColor = '#00ffff';
+      ctx.shadowBlur = 20;
+    }
     ctx.fillText(this.cfg.emoji, this.centerX(), this.centerY() + 4);
     ctx.restore();
-    // upgrade star badge
+    // upgrade glow ring
     if (this.upgradeLevel >= 1) {
+      ctx.save();
+      ctx.strokeStyle = '#ffd700';
+      ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.4 + 0.2 * Math.sin(gameTime / 300);
+      ctx.beginPath();
+      ctx.arc(this.centerX(), this.centerY(), this.width / 2 + 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+      // upgrade star badge
       ctx.save();
       ctx.font = '16px serif';
       ctx.textAlign = 'center';
@@ -522,7 +539,15 @@ class Threat {
         score += 10;
         Sound.threatDie();
         dropCoin(this.centerX(), this.centerY(), false);
-        spawnParticles(this.centerX(), this.centerY(), 8, '#00ff41');
+        // death explosion — more particles for tougher threats
+        const hpRatio = this.cfg.hp / 200;
+        const count = Math.min(4 + Math.floor(hpRatio * 2), 16);
+        const colors = ['#00ff41', '#39ff14', '#ff3333', '#ff6600'];
+        spawnParticles(this.centerX(), this.centerY(), count, colors[Math.floor(Math.random() * colors.length)]);
+        // extra flash for special threats
+        if (this.cfg.stealAmount || this.cfg.freezeTime || this.cfg.slowFireRate) {
+          spawnParticles(this.centerX(), this.centerY(), 6, '#ffff00');
+        }
       }
     }
   }
@@ -680,6 +705,7 @@ class Zomboss {
           });
           spawnFloatingText(canvas.width / 2, 60, 'FIREBALL!', '#ff4400');
           Sound.bossFireball();
+          triggerShake(8, 500);
           this.vulnerable = true;
           this.state = 'IDLE';
           this._nextAction = now + 6000;
@@ -705,6 +731,7 @@ class Zomboss {
           }
           spawnFloatingText(canvas.width / 2, 60, 'SMASH!', '#ff0066');
           Sound.bossSmash();
+          triggerShake(12, 600);
           this.vulnerable = true;
           this.state = 'IDLE';
           this._nextAction = now + 6000;

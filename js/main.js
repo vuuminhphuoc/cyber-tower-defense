@@ -62,7 +62,16 @@ function cleanupEntities() {
 
 // ===== Render =====
 function render() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // screen shake
+  ctx.save();
+  if (shakeDuration > 0 && performance.now() - shakeStart < shakeDuration) {
+    const elapsed = performance.now() - shakeStart;
+    const decay = 1 - elapsed / shakeDuration;
+    const sx = (Math.random() - 0.5) * shakeIntensity * decay * 2;
+    const sy = (Math.random() - 0.5) * shakeIntensity * decay * 2;
+    ctx.translate(sx, sy);
+  }
+  ctx.clearRect(-10, -10, canvas.width + 20, canvas.height + 20);
   drawLawn();
   lawnMowers.forEach(m => m.draw());
   towers.forEach(p => p.draw());
@@ -183,6 +192,26 @@ function render() {
         ctx.strokeRect(hx, hy, CELL_W + 40, CELL_H);
       }
     }
+    // show range for hovered placed tower (no tower selected)
+    if (!selectedTowerKey && grid[hoverRow] && grid[hoverRow][hoverCol]) {
+      const hovTower = grid[hoverRow][hoverCol].tower || grid[hoverRow][hoverCol].baseTower;
+      if (hovTower && !hovTower.markedForDeletion) {
+        ctx.save();
+        ctx.globalAlpha = 0.12;
+        ctx.fillStyle = '#00ffff';
+        if (hovTower.type === 'scanner') {
+          ctx.fillRect(0, TOP_OFFSET + hoverRow * CELL_H, canvas.width, CELL_H);
+        } else if (hovTower.cfg.cloakRadius) {
+          const cr = hovTower.cfg.cloakRadius * CELL_W;
+          ctx.beginPath();
+          ctx.arc(hovTower.centerX(), hovTower.centerY(), cr, 0, Math.PI * 2);
+          ctx.fill();
+        } else if (hovTower.type === 'healer') {
+          ctx.fillRect(hovTower.x - CELL_W, hovTower.y - CELL_H, CELL_W * 5, CELL_H * 3);
+        }
+        ctx.restore();
+      }
+    }
     ctx.restore();
   }
   projectiles.forEach(p => p.draw());
@@ -195,7 +224,9 @@ function render() {
     ctx.save();
     ctx.globalAlpha = 1 - age;
     ctx.fillStyle = p.color;
-    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * (1 - age * 0.5), 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   });
   // draw floating texts
@@ -203,13 +234,15 @@ function render() {
     const age = (performance.now() - f.born) / f.life;
     ctx.save();
     ctx.globalAlpha = 1 - age;
-    ctx.font = 'bold 16px Arial';
+    ctx.font = 'bold 16px Courier New';
     ctx.textAlign = 'center';
+    ctx.shadowColor = f.color;
+    ctx.shadowBlur = 6;
     ctx.fillStyle = f.color;
     ctx.fillText(f.text, f.x, f.y - age * 30);
     ctx.restore();
   });
-  // fog overlay
+  // fog overlay (pulsing)
   if (currentLevel && currentLevel.fogColumns) {
     ctx.save();
     // first draw tower silhouettes in fogged columns
@@ -228,9 +261,10 @@ function render() {
         ctx.fillRect(bx, by, bw, 6);
       }
     });
-    // then draw fog
-    ctx.globalAlpha = 1;
-    ctx.fillStyle = 'rgba(30,30,50,0.55)';
+    // then draw fog with pulsing alpha
+    const fogPulse = 0.45 + 0.1 * Math.sin(performance.now() / 2000);
+    ctx.globalAlpha = fogPulse;
+    ctx.fillStyle = 'rgba(20,20,40,0.8)';
     currentLevel.fogColumns.forEach(col => {
       ctx.fillRect(col * CELL_W, 0, CELL_W, canvas.height);
     });
@@ -267,6 +301,7 @@ function render() {
     ' • Threats: ' + threats.length + ' • Coins: ' + credits;
 
   drawPauseOverlay();
+  ctx.restore(); // screen shake restore
 }
 
 // progress bar + flags
@@ -302,6 +337,18 @@ function drawProgressBar() {
   ctx.font = '18px serif';
   ctx.textAlign = 'center';
   ctx.fillText('🦠', bx + bw + 14, by + bh / 2 + 2);
+  // wave countdown timer (show between waves)
+  if (waveStarted && !waveActive && currentWave + 1 < WAVES.length) {
+    const nextWaveDelay = WAVES[currentWave + 1].delay || 0;
+    const timeSinceLastWave = performance.now() - lastWaveEndTime;
+    const remaining = Math.max(0, Math.ceil((nextWaveDelay - timeSinceLastWave) / 1000));
+    if (remaining > 0 && nextWaveDelay > 0) {
+      ctx.font = 'bold 14px Courier New';
+      ctx.fillStyle = '#00ffff';
+      ctx.textAlign = 'center';
+      ctx.fillText('Next wave in ' + remaining + 's', canvas.width / 2, by - 14);
+    }
+  }
   ctx.restore();
 }
 
