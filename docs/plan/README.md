@@ -4,8 +4,8 @@
 
 | Version | Focus | Status |
 |---|---|---|
-| `v1.0` | Stabilize current game | In Progress |
-| `v1.1` | New maps / levels | Planned |
+| `v1.0` | Stabilize current game | Done |
+| `v1.1` | New maps / levels | Done |
 | `v1.2` | New towers / weapons | Planned |
 | `v1.3` | New threats / bosses | Planned |
 | `v1.4` | Challenge modes | Planned |
@@ -16,11 +16,12 @@
 
 ---
 
-## Current State (v1.0)
+## Current State (v1.1)
 
-- 20 levels, 7 stages
-- 18 towers, 14 threats, 1 boss (Zero-Day Exploit)
-- Smoke test harness (Puppeteer)
+- 35 levels, 10 stages
+- 18 towers, 14 threats, 4 bosses (Zero-Day, Botnet Commander, Satellite Hijacker, Quantum Root)
+- 6 terrain types (server_rack, overheated, signal_delay, uplink, quantum, entangled)
+- Smoke test harness (Puppeteer, all 35 levels + boss checks)
 - Bug report via GitHub issues
 - Deployed to Netlify
 

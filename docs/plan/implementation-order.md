@@ -20,24 +20,24 @@
 
 ---
 
-## Sprint 2: New Maps & Levels
+## Sprint 2: New Maps & Levels — DONE
 
 ### Tasks
-1. Add `cellType` values: `server_rack`, `overheated`, `signal_delay`, `uplink`, `quantum`, `entangled`
-2. Add terrain effect hooks in `entities.js`
-3. Add terrain visual overlays in `grid.js`
-4. Add Stage 8: Server Farm (5 levels)
-5. Add Stage 9: Satellite Network (5 levels)
-6. Add Stage 10: Quantum Core (5 levels)
-7. Add 3 new bosses
-8. Update `config.js` LEVEL_DATABASE
-9. Update `screens.js` threat preview
+1. [x] Add `cellType` values: `server_rack`, `overheated`, `signal_delay`, `uplink`, `quantum`, `entangled`
+2. [x] Add terrain effect hooks in `entities.js`
+3. [x] Add terrain visual overlays in `grid.js`
+4. [x] Add Stage 8: Server Farm (5 levels)
+5. [x] Add Stage 9: Satellite Network (5 levels)
+6. [x] Add Stage 10: Quantum Core (5 levels)
+7. [x] Add 3 new bosses (Botnet Commander, Satellite Hijacker, Quantum Root)
+8. [x] Update `config.js` LEVEL_DATABASE + LEVEL_ORDER + STAGE_EMOJI
+9. [x] Generalized `startBossLevel()` via `bossType` + BOSS_CLASSES
 
 ### Deliverables
-- 15 new levels (total: 35)
-- 3 new bosses
-- 6 new terrain types
-- Updated docs
+- [x] 15 new levels (total: 35)
+- [x] 3 new bosses
+- [x] 6 new terrain types
+- [x] Smoke test updated (35 levels + boss checks)
 
 ---
 
