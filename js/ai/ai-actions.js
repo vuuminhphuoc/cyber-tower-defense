@@ -124,8 +124,9 @@ AI.collectAll = function() {
 
 AI.sendWave = function() {
   if (waveActive) return false;
-  if (!waveStarted) return false;
   if (currentWave + 1 >= WAVES.length) return false;
+  // can send next wave (first wave counts as "0" so we need waveStarted or currentWave >= 0)
+  if (!waveStarted && currentWave > 0) return false;
   startWave(currentWave + 1);
   return true;
 };

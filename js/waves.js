@@ -38,6 +38,9 @@ function startWave(index) {
   waveActive = true;
   lastThreatSpawn = gameTime;
   threatSpawnInterval = w.huge ? 2200 : 4000;
+  // hide wave preview
+  const previewEl = document.getElementById('wave-preview');
+  if (previewEl) previewEl.style.display = 'none';
   if (w.huge) {
     showBanner('CRITICAL BREACH — MASSIVE ATTACK INCOMING!');
     Sound.hugeWaveAlarm();
@@ -48,6 +51,57 @@ function startWave(index) {
     showBanner('Wave ' + (index + 1) + ' — INCOMING');
     Sound.waveStart();
   }
+}
+
+function getNextWavePreview() {
+  if (currentWave + 1 >= WAVES.length) return null;
+  const w = WAVES[currentWave + 1];
+  const types = [];
+  const chanceMap = {
+    coneChance: 'CONEHEAD', poleChance: 'POLE_VAULTING', bucketChance: 'BUCKETHEAD',
+    newspaperChance: 'NEWSPAPER', footballChance: 'FOOTBALL', spywareChance: 'SPYWARE',
+    adwareChance: 'ADWARE', cryptolockerChance: 'CRYPTOLOCKER', glitchChance: 'GLITCH',
+    botnetChance: 'BOTNET', aptChance: 'APT', rootkitChance: 'ROOTKIT',
+    sqlChance: 'SQL_INJECTION', malwareChance: 'MALWARE_DROPPER', dnsChance: 'DNS_SPOOFER',
+    insiderChance: 'INSIDER_THREAT', supplyChance: 'SUPPLY_CHAIN', quantumChance: 'QUANTUM_WORM'
+  };
+  Object.entries(chanceMap).forEach(([field, type]) => {
+    if (w[field] && w[field] > 0 && THREAT_TYPES[type]) {
+      types.push(THREAT_TYPES[type].emoji + ' ' + THREAT_TYPES[type].name);
+    }
+  });
+  if (w.types) {
+    w.types.forEach(t => {
+      if (THREAT_TYPES[t] && !types.some(x => x.includes(THREAT_TYPES[t].name))) {
+        types.push(THREAT_TYPES[t].emoji + ' ' + THREAT_TYPES[t].name);
+      }
+    });
+  }
+  return { count: w.count, huge: w.huge, types, boss: w.boss || w.bossLevel };
+}
+
+function updateWavePreview() {
+  let previewEl = document.getElementById('wave-preview');
+  if (!previewEl) {
+    previewEl = document.createElement('div');
+    previewEl.id = 'wave-preview';
+    previewEl.style.cssText = 'display:none;position:fixed;bottom:60px;right:20px;background:#111820;border:1px solid #00cc33;border-radius:4px;padding:8px 12px;z-index:50;color:#00cc33;font-family:Courier New,monospace;font-size:11px;max-width:220px;box-shadow:0 0 8px rgba(0,255,65,0.2);';
+    document.body.appendChild(previewEl);
+  }
+  if (waveActive || !waveStarted || currentWave + 1 >= WAVES.length) {
+    previewEl.style.display = 'none';
+    return;
+  }
+  const preview = getNextWavePreview();
+  if (!preview) { previewEl.style.display = 'none'; return; }
+  let html = '<b style="color:#00ff41;">Next Wave (' + (currentWave + 2) + ')</b><br>';
+  html += 'Count: ' + preview.count;
+  if (preview.huge) html += ' 🚩 HUGE';
+  if (preview.boss) html += ' 👾 BOSS';
+  html += '<br>';
+  html += '<span style="color:#666;">' + (preview.types.join(', ') || 'Basic') + '</span>';
+  previewEl.innerHTML = html;
+  previewEl.style.display = 'block';
 }
 
 function spawnThreat() {

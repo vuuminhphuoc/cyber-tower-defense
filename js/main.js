@@ -328,6 +328,7 @@ function render() {
   }
   drawProgressBar();
   drawBossHpBar();
+  if (typeof updateWavePreview === 'function') updateWavePreview();
 
   // banner wave
   if (gameTime < bannerUntil && bannerText) {

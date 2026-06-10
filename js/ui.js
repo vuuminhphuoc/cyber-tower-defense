@@ -222,6 +222,7 @@ canvas.addEventListener('click', (e) => {
 });
 
 // mouse hover also collects tokens/coins + tracks hover for range preview
+const towerTooltip = document.getElementById('tower-tooltip');
 canvas.addEventListener('mousemove', (e) => {
   if (gameOver || gameWon) return;
   const rect = canvas.getBoundingClientRect();
@@ -231,6 +232,34 @@ canvas.addEventListener('mousemove', (e) => {
   const hc = pixelToCell(px, py);
   if (hc) { hoverRow = hc.row; hoverCol = hc.col; }
   else { hoverRow = -1; hoverCol = -1; }
+
+  // tower tooltip on hover
+  if (hc && !selectedTowerKey && !shovelActive) {
+    const cell = grid[hc.row] && grid[hc.row][hc.col];
+    const tower = cell && (cell.tower || cell.baseTower);
+    if (tower && !tower.markedForDeletion) {
+      const cfg = TOWER_TYPES[tower.key];
+      let html = '<b style="color:#00ff41;">' + cfg.emoji + ' ' + cfg.name + '</b><br>';
+      html += 'HP: ' + tower.hp + '/' + tower.maxHp + '<br>';
+      if (cfg.damage) html += 'DMG: ' + cfg.damage + '<br>';
+      if (cfg.fireRate) html += 'Rate: ' + (cfg.fireRate / 1000).toFixed(1) + 's<br>';
+      if (cfg.slow) html += 'Slow: ' + Math.round(cfg.slow * 100) + '%<br>';
+      if (cfg.multiShot) html += 'Multi: ' + cfg.multiShot + 'x<br>';
+      if (cfg.tokenRate) html += 'Token: every ' + (cfg.tokenRate / 1000).toFixed(0) + 's<br>';
+      if (tower.upgradeLevel) html += 'Lv: ' + tower.upgradeLevel + '<br>';
+      const upgradeCost = Math.floor(cfg.cost * 0.6);
+      html += '<span style="color:#666;">Upgrade: 💰' + upgradeCost + '</span>';
+      towerTooltip.innerHTML = html;
+      towerTooltip.style.display = 'block';
+      towerTooltip.style.left = (e.clientX + 12) + 'px';
+      towerTooltip.style.top = (e.clientY - 10) + 'px';
+    } else {
+      towerTooltip.style.display = 'none';
+    }
+  } else {
+    towerTooltip.style.display = 'none';
+  }
+
   for (let i = tokens.length - 1; i >= 0; i--) {
     if (tokens[i].isClicked(px, py)) {
       collectToken(tokens[i]);
@@ -242,7 +271,7 @@ canvas.addEventListener('mousemove', (e) => {
     }
   }
 });
-canvas.addEventListener('mouseleave', () => { hoverRow = -1; hoverCol = -1; });
+canvas.addEventListener('mouseleave', () => { hoverRow = -1; hoverCol = -1; towerTooltip.style.display = 'none'; });
 
 function collectCoin(coin) {
   if (coin.kind === 'diamond') saveData.wallet.diamonds += 1;
