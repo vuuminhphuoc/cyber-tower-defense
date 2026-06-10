@@ -494,7 +494,19 @@ function loop(timestamp) {
 }
 
 // ===== Bootstrap =====
-goToMenu();
+LoadingScreen.show();
+let loadProgress = 0;
+const loadInterval = setInterval(() => {
+  loadProgress += 0.15;
+  LoadingScreen.update(loadProgress);
+  if (loadProgress >= 1) {
+    clearInterval(loadInterval);
+    LoadingScreen.hide();
+    goToMenu();
+    // start tutorial on first visit
+    setTimeout(() => { Tutorial.start(); }, 800);
+  }
+}, 100);
 requestAnimationFrame(loop);
 
 // ===== Bug Report =====

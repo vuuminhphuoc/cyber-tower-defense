@@ -10,6 +10,37 @@
 <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+  <!-- ===== LOADING SCREEN ===== -->
+  <div id="loading-screen" style="position:fixed;inset:0;background:#0a0e14;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;transition:opacity 0.5s;">
+    <div style="font-size:48px;margin-bottom:16px;animation:pulse 1.5s infinite;">🛡️</div>
+    <h1 style="font-size:32px;margin-bottom:8px;">Cyber Defenders</h1>
+    <div id="loading-text" style="color:#00cc33;font-size:14px;margin-top:12px;">Initializing network defenses...</div>
+    <div style="width:200px;height:4px;background:#1a2a1a;border-radius:2px;margin-top:16px;overflow:hidden;">
+      <div id="loading-bar" style="width:0%;height:100%;background:#00ff41;border-radius:2px;transition:width 0.3s;"></div>
+    </div>
+  </div>
+
+  <!-- ===== TUTORIAL OVERLAY ===== -->
+  <div id="tutorial-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9998;justify-content:center;align-items:center;">
+    <div style="background:#111820;border:2px solid #00ff41;border-radius:8px;padding:24px;max-width:500px;width:90%;color:#00cc33;font-family:Courier New,monospace;text-align:center;">
+      <h3 id="tutorial-title" style="color:#00ff41;font-size:20px;margin-bottom:12px;"></h3>
+      <div id="tutorial-icon" style="font-size:48px;margin:12px 0;"></div>
+      <p id="tutorial-text" style="font-size:14px;line-height:1.6;margin-bottom:16px;"></p>
+      <div id="tutorial-progress" style="font-size:12px;color:#666;margin-bottom:12px;"></div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button id="tutorial-skip" class="btn btn-secondary" style="font-size:13px;padding:6px 14px;">Skip Tutorial</button>
+        <button id="tutorial-next" class="btn" style="font-size:13px;padding:6px 14px;">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ACHIEVEMENT POPUP ===== -->
+  <div id="achievement-popup" style="display:none;position:fixed;top:20px;right:20px;background:#111820;border:2px solid #ffd700;border-radius:8px;padding:16px;z-index:9997;font-family:Courier New,monospace;color:#ffd700;box-shadow:0 0 20px rgba(255,215,0,0.3);animation:slideIn 0.3s ease-out;max-width:280px;">
+    <div style="font-size:12px;opacity:0.7;">ACHIEVEMENT UNLOCKED</div>
+    <div id="achievement-name" style="font-size:16px;font-weight:bold;margin:4px 0;"></div>
+    <div id="achievement-desc" style="font-size:12px;color:#00cc33;"></div>
+  </div>
+
   <h1>Cyber Defenders</h1>
 
   <!-- ===== MENU ===== -->
@@ -181,6 +212,7 @@
   <script src="js/ai/ai-actions.js"></script>
   <script src="js/ai/ai-rule-bot.js"></script>
   <script src="js/ai/ai-controller.js"></script>
+  <script src="js/polish.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

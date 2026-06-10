@@ -298,6 +298,18 @@ kbd {
 .btn:disabled, .btn.disabled { pointer-events: none; }
 .ui-tool-btn:active { transform: scale(0.95); }
 
+/* ===== Loading Screen ===== */
+@keyframes loadingPulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+#loading-screen .pulse { animation: loadingPulse 1.5s infinite; }
+
+/* ===== Tutorial Overlay ===== */
+@keyframes slideInRight { from{transform:translateX(100px);opacity:0;} to{transform:translateX(0);opacity:1;} }
+#tutorial-overlay { animation: fadeIn 0.3s ease-out; }
+
+/* ===== Achievement Popup ===== */
+@keyframes slideIn { from{transform:translateX(100px);opacity:0;} to{transform:translateX(0);opacity:1;} }
+@keyframes slideOut { from{transform:translateX(0);opacity:1;} to{transform:translateX(100px);opacity:0;} }
+
 /* Bug Report */
 #bug-report-btn:hover { color: #00ff41 !important; }
 #bug-modal input:focus, #bug-modal textarea:focus {
