@@ -301,6 +301,32 @@ document.addEventListener('keydown', (e) => {
     updateCardsUI();
     return;
   }
+
+  // R: restart level
+  if (e.key === 'r' || e.key === 'R') {
+    if (gameOver || gameWon) {
+      overlay.style.display = 'none';
+      currentLevel = LEVEL_DATABASE[currentLevelId];
+      startLevel();
+    }
+    return;
+  }
+
+  // N: send next wave early
+  if (e.key === 'n' || e.key === 'N') {
+    if (!waveActive && waveStarted && currentWave + 1 < WAVES.length) {
+      startWave(currentWave + 1);
+    }
+    return;
+  }
+
+  // F: toggle fast forward
+  if (e.key === 'f' || e.key === 'F') {
+    gameSpeed = gameSpeed === 1 ? 2 : 1;
+    const btn = document.getElementById('speed-btn');
+    if (btn) btn.textContent = gameSpeed === 2 ? '⏫' : '⏩';
+    return;
+  }
 });
 
 // ===== Shovel =====

@@ -149,6 +149,14 @@ function buildMenu() {
   document.getElementById('stat-towers').textContent = towersUnlocked;
   const container = document.getElementById('menu-levels');
   container.innerHTML = '';
+  // level preview tooltip
+  let previewEl = document.getElementById('level-preview');
+  if (!previewEl) {
+    previewEl = document.createElement('div');
+    previewEl.id = 'level-preview';
+    previewEl.style.cssText = 'display:none;position:fixed;background:#111820;border:2px solid #00ff41;border-radius:6px;padding:10px;z-index:200;color:#00cc33;font-family:Courier New,monospace;font-size:12px;max-width:220px;pointer-events:none;box-shadow:0 0 12px rgba(0,255,65,0.3);';
+    document.body.appendChild(previewEl);
+  }
   LEVEL_ORDER.forEach((id, idx) => {
     const lv = LEVEL_DATABASE[id];
     const btn = document.createElement('div');
@@ -159,7 +167,39 @@ function buildMenu() {
     if (beaten) btn.classList.add('beaten');
     btn.innerHTML = '<span class="stage-emoji">' + STAGE_EMOJI[lv.stage] + '</span>' +
                     '<span>' + id + '</span>' + (beaten ? '<span>✓</span>' : locked ? '<span>🔒</span>' : '');
-    if (!locked) btn.addEventListener('click', () => { Sound.menuClick(); openSeedChooser(id); });
+    if (!locked) {
+      btn.addEventListener('click', () => { Sound.menuClick(); openSeedChooser(id); });
+      // hover preview
+      btn.addEventListener('mouseenter', (e) => {
+        const threatTypes = new Set();
+        const chanceMap = {
+          coneChance: 'Conehead', poleChance: 'Pole Vault', bucketChance: 'Buckethead',
+          newspaperChance: 'Newspaper', footballChance: 'Football', spywareChance: 'Spyware',
+          adwareChance: 'Adware', cryptolockerChance: 'Cryptolocker', glitchChance: 'Glitch',
+          botnetChance: 'Botnet', aptChance: 'APT', rootkitChance: 'Rootkit',
+          sqlChance: 'SQL Injection', malwareChance: 'Malware Dropper', dnsChance: 'DNS Spoofer',
+          insiderChance: 'Insider Threat', supplyChance: 'Supply Chain', quantumChance: 'Quantum Worm'
+        };
+        lv.waves.forEach(w => {
+          Object.entries(chanceMap).forEach(([field, name]) => {
+            if (w[field] && w[field] > 0) threatTypes.add(name);
+          });
+          if (w.types) w.types.forEach(t => { if (THREAT_TYPES[t]) threatTypes.add(THREAT_TYPES[t].name); });
+        });
+        let html = '<b style="color:#00ff41">' + lv.name + '</b><br>';
+        html += 'Stage ' + lv.stage + ' • ' + lv.gridMode + '<br>';
+        html += '💰 ' + lv.initialTokens + ' starting<br>';
+        html += 'Waves: ' + lv.waves.length;
+        if (lv.bossLevel) html += ' 👾 BOSS';
+        html += '<br><span style="color:#666;">Threats: ' + [...threatTypes].join(', ') + '</span>';
+        previewEl.innerHTML = html;
+        previewEl.style.display = 'block';
+        const rect = btn.getBoundingClientRect();
+        previewEl.style.left = (rect.right + 8) + 'px';
+        previewEl.style.top = rect.top + 'px';
+      });
+      btn.addEventListener('mouseleave', () => { previewEl.style.display = 'none'; });
+    }
     container.appendChild(btn);
   });
 }
