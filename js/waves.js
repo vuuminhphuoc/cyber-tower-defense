@@ -53,6 +53,19 @@ function startWave(index) {
 function spawnThreat() {
   const w = WAVES[currentWave];
   const row = Math.floor(Math.random() * gridRows);
+  // endless mode waves use 'types' array
+  if (w.types && w.types.length > 0) {
+    const type = w.types[Math.floor(Math.random() * w.types.length)];
+    const t = spawnThreatByType(type, row);
+    // apply endless scaling
+    if (gameMode === 'endless' && w.hpScale) {
+      t.hp = Math.floor(t.hp * w.hpScale);
+      t.maxHp = t.hp;
+      if (w.speedScale) t.baseSpeed *= w.speedScale;
+    }
+    threatsSpawnedThisWave++;
+    return;
+  }
   // pick threat type based on wave config chances (weighted random)
   const chances = [
     { type: 'BASIC',         chance: 1.0 },  // fallback always available
@@ -87,6 +100,15 @@ function spawnThreat() {
     }
   }
   spawnThreatByType(type, row);
+  // apply endless scaling
+  if (gameMode === 'endless' && w.hpScale) {
+    const t = threats[threats.length - 1];
+    if (t) {
+      t.hp = Math.floor(t.hp * w.hpScale);
+      t.maxHp = t.hp;
+      if (w.speedScale) t.baseSpeed *= w.speedScale;
+    }
+  }
   threatsSpawnedThisWave++;
 }
 
@@ -119,10 +141,39 @@ function updateWaves(now) {
     if (threatsSpawnedThisWave >= threatsToSpawn && threats.length === 0) {
       waveActive = false;
       lastWaveEndTime = now;
-      if (currentWave + 1 < WAVES.length) {
+      if (gameMode === 'endless') {
+        endlessWave++;
+        if (endlessWave > endlessBest) {
+          endlessBest = endlessWave;
+          localStorage.setItem('cyber_endless_best', endlessBest.toString());
+        }
+        showBanner('WAVE ' + endlessWave + ' CLEARED');
+        // generate more waves if running low
+        if (currentWave + 3 >= WAVES.length) {
+          generateEndlessWaves(10);
+        }
+        nextWaveAt = now + 5000;
+      } else if (currentWave + 1 < WAVES.length) {
         showBanner('WAVE CLEARED — Next wave incoming...');
         nextWaveAt = now + 5000;
       } else {
+        // all waves done
+        if (gameMode === 'speedrun' && speedrunStart > 0) {
+          const elapsed = Math.floor((performance.now() - speedrunStart) / 1000);
+          const best = parseInt(localStorage.getItem('cyber_speedrun_best') || '999999');
+          if (elapsed < best) {
+            localStorage.setItem('cyber_speedrun_best', elapsed.toString());
+          }
+          // advance to next level in speedrun
+          const speedrunIdx = LEVEL_ORDER.indexOf(currentLevelId) + 1;
+          if (speedrunIdx < LEVEL_ORDER.length) {
+            gameWon = true; // mark current level won
+            showOverlay('LEVEL COMPLETE!', '#2ecc71', 'Next Level',
+              'Time: ' + formatTime(Math.floor((performance.now() - speedrunStart) / 1000)));
+            restartBtn.dataset.mode = 'speedrun_next';
+            return;
+          }
+        }
         triggerWin();
       }
     }
@@ -143,6 +194,12 @@ function startBossLevel() {
   const bossKey = (currentLevel && currentLevel.bossType) || 'ZERO_DAY';
   const BossClass = (typeof BOSS_CLASSES !== 'undefined' && BOSS_CLASSES[bossKey]) || Zomboss;
   bossZomboss = new BossClass();
+  // endless mode: scale boss HP
+  if (gameMode === 'endless') {
+    const scale = 1 + endlessWave * 0.15;
+    bossZomboss.hp = Math.floor(bossZomboss.hp * scale);
+    bossZomboss.maxHp = bossZomboss.hp;
+  }
   threats.push(bossZomboss);
   showBanner((bossZomboss.name || 'ZERO-DAY EXPLOIT').toUpperCase() + ' DEPLOYED!');
   Sound.hugeWaveAlarm();
@@ -159,6 +216,19 @@ function checkBossDefeated() {
     dropCoin(bossZomboss.centerX(), bossZomboss.centerY(), true);
     spawnParticles(bossZomboss.centerX(), bossZomboss.centerY(), 30, '#00ff41');
     spawnFloatingText(bossZomboss.centerX(), bossZomboss.centerY() - 30, 'BOSS DEFEATED! +500', '#ffd700');
-    triggerWin();
+    if (gameMode === 'boss_rush') {
+      bossRushIndex++;
+      // delay before next boss
+      setTimeout(() => { startBossRushLevel(); }, 3000);
+    } else if (gameMode === 'endless') {
+      // endless: boss defeated, keep going
+      showBanner('BOSS DEFEATED — CONTINUING...');
+      if (currentWave + 3 >= WAVES.length) {
+        generateEndlessWaves(10);
+      }
+      nextWaveAt = gameTime + 5000;
+    } else {
+      triggerWin();
+    }
   }
 }

@@ -171,6 +171,10 @@ function tryTower(row, col) {
   selectedTowerKey = null;
   Sound.towerPlace();
   updateCardsUI();
+  // speedrun: start timer on first action
+  if (gameMode === 'speedrun' && speedrunStart === 0) {
+    speedrunStart = performance.now();
+  }
 }
 
 // ===== Mouse Input =====

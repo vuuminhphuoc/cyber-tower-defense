@@ -352,9 +352,22 @@ function render() {
   ctx.restore();
 
   // status bar
-  const waveLabel = waveStarted ? ('Wave ' + (currentWave + 1) + '/' + WAVES.length) : 'Initializing...';
+  let waveLabel;
+  if (gameMode === 'endless') {
+    waveLabel = 'Wave: ∞ ' + (endlessWave + 1);
+  } else {
+    waveLabel = waveStarted ? ('Wave ' + (currentWave + 1) + '/' + WAVES.length) : 'Initializing...';
+  }
+  let statusExtra = '';
+  if (gameMode === 'speedrun' && speedrunStart > 0) {
+    statusExtra = ' | Time: ' + formatTime(Math.floor((performance.now() - speedrunStart) / 1000));
+  } else if (gameMode === 'boss_rush') {
+    statusExtra = ' | Boss ' + (bossRushIndex + 1) + '/4';
+  } else if (gameMode === 'endless') {
+    statusExtra = ' | Best: ' + endlessBest;
+  }
   statusBar.textContent = (currentLevel ? currentLevel.name + ' • ' : '') + waveLabel +
-    ' • Threats: ' + threats.length + ' • Coins: ' + credits;
+    ' • Threats: ' + threats.length + ' • Coins: ' + credits + statusExtra;
 
   drawPauseOverlay();
   ctx.restore(); // screen shake restore

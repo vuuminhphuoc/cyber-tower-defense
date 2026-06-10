@@ -9,11 +9,20 @@
 // =====================================================================
 
 // ===== State Machine =====
-const GAME_STATE = { MENU: 'MENU', SEED_CHOOSER: 'SEED_CHOOSER', PLAYING: 'PLAYING', SHOP: 'SHOP', ALMANAC: 'ALMANAC', HELP: 'HELP' };
+const GAME_STATE = { MENU: 'MENU', SEED_CHOOSER: 'SEED_CHOOSER', PLAYING: 'PLAYING', SHOP: 'SHOP', ALMANAC: 'ALMANAC', HELP: 'HELP', CHALLENGES: 'CHALLENGES' };
 let gameState = GAME_STATE.MENU;
 let currentLevelId = null;
 let currentLevel = null;
 let chosenSeeds = []; // selected seeds for the match
+
+// ===== Challenge Mode =====
+let gameMode = 'campaign'; // 'campaign' | 'endless' | 'boss_rush' | 'speedrun'
+let endlessWave = 0;
+let endlessBest = parseInt(localStorage.getItem('cyber_endless_best') || '0');
+let bossRushIndex = 0;
+let bossRushOrder = ['7-5', '8-5', '9-5', '10-5'];
+let speedrunStart = 0;
+let speedrunBest = parseInt(localStorage.getItem('cyber_speedrun_best') || '999999');
 
 // ===== Battle state =====
 let credits = 300;
