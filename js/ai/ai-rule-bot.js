@@ -15,6 +15,12 @@ AI.ruleBotDecide = function(state, legalActions) {
   const allThreats = state.lanes.reduce((sum, l) => sum + l.threats.length, 0);
   const totalTowers = state.lanes.reduce((sum, l) => sum + l.towers.length, 0);
 
+  // 0. ALWAYS: Collect all tokens/coins FIRST (highest priority, always do this)
+  if (actionsByType.collect_all && actionsByType.collect_all.length > 0) {
+    decisions.push(actionsByType.collect_all[0]);
+    return decisions; // collect first, then next tick will place towers
+  }
+
   // 1. CRITICAL: Emergency wall — threat in final 2 columns with no wall
   for (const lane of state.lanes) {
     for (const threat of lane.threats) {
@@ -60,13 +66,7 @@ AI.ruleBotDecide = function(state, legalActions) {
     }
   }
 
-  // 3. HIGH: Collect all tokens/coins (do this often, don't skip)
-  if (allThreats === 0 && actionsByType.collect_all && actionsByType.collect_all.length > 0) {
-    decisions.push(actionsByType.collect_all[0]);
-    // don't return — continue to place towers too
-  }
-
-  // 4. HIGH: Lane has threat + no shooter → place cheapest shooter
+  // 3. HIGH: Lane has threat + no shooter → place cheapest shooter
   for (const lane of state.lanes) {
     if (lane.threats.length === 0) continue;
     const hasShooter = lane.towers.some(t => TOWER_TYPES[t] && (TOWER_TYPES[t].type === 'shooter' || TOWER_TYPES[t].type === 'multishooter' || TOWER_TYPES[t].type === 'chomper'));

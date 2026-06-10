@@ -75,6 +75,7 @@ AI.upgradeTower = function(row, col) {
   const tower = cell.tower || cell.baseTower;
   if (!tower || tower.markedForDeletion) return false;
   if (tower.key === 'PROXY_NODE') return false;
+  if ((tower.upgradeLevel || 0) >= 3) return false; // max level 3
 
   const cfg = TOWER_TYPES[tower.key];
   const upgradeCost = Math.floor(cfg.cost * 0.6);
@@ -85,7 +86,7 @@ AI.upgradeTower = function(row, col) {
   tower.maxHp = Math.floor(tower.maxHp * 1.3);
   tower.upgradeLevel = (tower.upgradeLevel || 0) + 1;
   tower._totalInvested = (tower._totalInvested || cfg.cost) + upgradeCost;
-  spawnFloatingText(tower.centerX(), tower.y - 10, 'UPGRADED!', '#ffd700');
+  spawnFloatingText(tower.centerX(), tower.y - 10, 'UPGRADED Lv' + tower.upgradeLevel + '!', '#ffd700');
   spawnParticles(tower.centerX(), tower.centerY(), 8, '#ffd700');
   Sound.heal();
   updateCardsUI();

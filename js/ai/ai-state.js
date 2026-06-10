@@ -92,10 +92,15 @@ AI.getLegalActions = function() {
     }
   }
 
-  // upgrade tower
+  // upgrade tower (max level 3)
   for (const lane of state.lanes) {
     for (const cell of lane.cells) {
       if (!cell.hasTower || cell.towerKey === 'PROXY_NODE') continue;
+      // find actual tower to check upgrade level
+      const actualCell = grid[lane.row] && grid[lane.row][cell.col];
+      const actualTower = actualCell && (actualCell.tower || actualCell.baseTower);
+      const currentLevel = actualTower ? (actualTower.upgradeLevel || 0) : 0;
+      if (currentLevel >= 3) continue; // max upgrade level
       const cfg = TOWER_TYPES[cell.towerKey];
       const upgradeCost = Math.floor(cfg.cost * 0.6);
       if (state.credits >= upgradeCost) {
