@@ -69,6 +69,28 @@ function cleanupEntities() {
       }
     }
   }
+  // Cloud Backup: revive destroyed towers within range
+  const now = gameTime;
+  for (const p of towers) {
+    if (!p.markedForDeletion) continue;
+    if (p.type === 'lily_pad') continue; // don't revive proxy nodes
+    for (const backup of towers) {
+      if (backup.markedForDeletion || backup.type !== 'reviver') continue;
+      if (backup._reviveCooldownUntil && now < backup._reviveCooldownUntil) continue;
+      const dist = Math.abs(backup.x - p.x);
+      if (dist < (backup.cfg.reviveRadius || 2) * CELL_W && backup.row === p.row) {
+        // revive the tower
+        const reviveHpPct = backup.cfg.reviveHp || 0.5;
+        p.markedForDeletion = false;
+        p.hp = Math.max(1, Math.floor(p.maxHp * reviveHpPct));
+        backup._reviveCooldownUntil = now + (backup.cfg.reviveCooldown || 180000);
+        spawnParticles(p.centerX(), p.centerY(), 15, '#5cf');
+        spawnFloatingText(p.centerX(), p.y - 10, 'REVIVED!', '#5cf');
+        Sound.heal();
+        break;
+      }
+    }
+  }
   // remove towers from grid before filtering
   for (const p of towers) {
     if (p.markedForDeletion && grid[p.row] && grid[p.row][p.col]) {

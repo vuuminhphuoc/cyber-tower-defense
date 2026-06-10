@@ -51,7 +51,17 @@ const TOWER_TYPES = {
   SCANNER:        { cost: 75,  hp: 300,  cooldown: 2000,  type: 'scanner', emoji: '📡', name: 'Scanner', slow: 0.7, slowDuration: 1000, desc: 'Slows all threats in row by 30%', upgradeCost: 40 },
 
   // --- Pool (data stream) ---
-  PROXY_NODE:     { cost: 25,  hp: 300,  cooldown: 1000,  type: 'lily_pad', emoji: '🔗', name: 'Proxy Node', desc: 'Platform to place towers on data streams', upgradeCost: 15 }
+  PROXY_NODE:     { cost: 25,  hp: 300,  cooldown: 1000,  type: 'lily_pad', emoji: '🔗', name: 'Proxy Node', desc: 'Platform to place towers on data streams', upgradeCost: 15 },
+
+  // --- v1.2 New Towers ---
+  LOG_ANALYZER:      { cost: 75,  hp: 200,  cooldown: 3000,  type: 'support_reveal', emoji: '🔍', name: 'Log Analyzer', revealRadius: 3, desc: 'Reveals cloaked threats within 3 tiles, reduces cloak time by 50%', upgradeCost: 45 },
+  SANDBOX:           { cost: 125, hp: 150,  cooldown: 12000, type: 'trap',            emoji: '📦', name: 'Sandbox', trapDuration: 3000, trapSlow: 0.8, desc: 'Immobilizes threat for 3s, then -20% speed for 5s', upgradeCost: 75 },
+  RATE_LIMITER:      { cost: 100, hp: 250,  cooldown: 3000,  type: 'aura_slow',       emoji: '🚦', name: 'Rate Limiter', slowAura: 0.7, auraRadius: 2, desc: 'Slows threats in 2-tile radius by 30%', upgradeCost: 60 },
+  ZERO_TRUST_GATE:   { cost: 175, hp: 2500, cooldown: 5000,  type: 'defender_aura',   emoji: '🏛️', name: 'Zero Trust Gate', damageReduction: 0.85, auraRadius: 1, desc: 'Wall with aura: nearby threats deal 15% less damage', upgradeCost: 105 },
+  SIEM_CENTER:       { cost: 225, hp: 300,  cooldown: 3000,  type: 'aura_damage',     emoji: '📊', name: 'SIEM Center', damageBuff: 1.25, auraRadius: 99, desc: '+25% damage to towers in same row', upgradeCost: 135 },
+  CLOUD_BACKUP:      { cost: 150, hp: 200,  cooldown: 3000,  type: 'reviver',         emoji: '☁️', name: 'Cloud Backup', reviveHp: 0.5, reviveRadius: 2, reviveCooldown: 180000, desc: 'Auto-revives destroyed towers within 2 tiles (180s cooldown)', upgradeCost: 90 },
+  QUANTUM_FIREWALL:  { cost: 350, hp: 350,  cooldown: 1800,  type: 'pierce_shooter',  emoji: '🔮', name: 'Quantum Firewall', damage: 45, fireRate: 1800, pierceCount: 3, pierceDecay: 0.8, desc: 'Pierces up to 3 threats, 20% dmg reduction per pierce', upgradeCost: 210 },
+  HONEYPOT_CLUSTER:  { cost: 300, hp: 400,  cooldown: 20000, type: 'chomper_aoe',     emoji: '🍯', name: 'Honeypot Cluster', chewTime: 15000, eatThreshold: 0.4, aoeSlow: 0.6, aoeDuration: 5000, aoeRadius: 2, desc: 'Eats threats under 40% HP, AoE slow 40% for 5s after eating', upgradeCost: 180 }
 };
 const ALL_TOWER_KEYS = Object.keys(TOWER_TYPES);
 let TOWER_KEYS = ['BITCOIN_MINER', 'FIREWALL', 'FIREWALL_WALL'];
@@ -301,7 +311,7 @@ const LEVEL_DATABASE = {
   "8-1": {
     name: "Server Farm - Level 1", stage: 8, gridMode: '5_LANE', initialTokens: 100, tokenSpawnRate: 6000,
     terrain: [{ row: 1, col: 2, type: 'server_rack' }, { row: 3, col: 2, type: 'server_rack' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "LOG_ANALYZER", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
       { count: 6, coneChance: 0.3, poleChance: 0.2, bucketChance: 0.15 },
       { count: 10, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.2, newspaperChance: 0.15 },
@@ -311,7 +321,7 @@ const LEVEL_DATABASE = {
   "8-2": {
     name: "Server Farm - Level 2", stage: 8, gridMode: '5_LANE', initialTokens: 100, tokenSpawnRate: 6000,
     terrain: [{ row: 0, col: 4, type: 'overheated' }, { row: 2, col: 4, type: 'overheated' }, { row: 4, col: 4, type: 'overheated' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "RATE_LIMITER", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
       { count: 8, coneChance: 0.35, poleChance: 0.2, bucketChance: 0.2, newspaperChance: 0.15 },
       { count: 12, coneChance: 0.45, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, spywareChance: 0.1 },
@@ -321,7 +331,7 @@ const LEVEL_DATABASE = {
   "8-3": {
     name: "Server Farm - Level 3", stage: 8, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
     terrain: [{ row: 1, col: 2, type: 'server_rack' }, { row: 3, col: 6, type: 'overheated' }, { row: 2, col: 3, type: 'server_rack' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "SANDBOX", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
       { count: 10, coneChance: 0.4, poleChance: 0.25, bucketChance: 0.25, newspaperChance: 0.2, botnetChance: 0.1 },
       { count: 14, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, footballChance: 0.15, botnetChance: 0.15 },
@@ -331,7 +341,7 @@ const LEVEL_DATABASE = {
   "8-4": {
     name: "Server Farm - Level 4", stage: 8, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
     terrain: [{ row: 0, col: 3, type: 'overheated' }, { row: 2, col: 2, type: 'server_rack' }, { row: 4, col: 3, type: 'overheated' }, { row: 2, col: 6, type: 'overheated' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "ZERO_TRUST_GATE", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
       { count: 12, coneChance: 0.45, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, aptChance: 0.1, rootkitChance: 0.05 },
       { count: 16, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, aptChance: 0.15, rootkitChance: 0.1 },
@@ -342,7 +352,7 @@ const LEVEL_DATABASE = {
     name: "Server Farm - Mini-Boss", stage: 8, gridMode: '5_LANE', initialTokens: 150, tokenSpawnRate: 5000,
     bossLevel: true, bossType: 'BOTNET_COMMANDER',
     terrain: [{ row: 1, col: 2, type: 'server_rack' }, { row: 3, col: 2, type: 'server_rack' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "CLOUD_BACKUP", unlockedTowers: ALL_TOWER_KEYS,
     waves: [{ count: 0, boss: true }]
   },
 
@@ -371,7 +381,7 @@ const LEVEL_DATABASE = {
     name: "Satellite Net - Level 3", stage: 9, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
     fogColumns: [5, 6, 7, 8],
     terrain: [{ row: 0, col: 3, type: 'signal_delay' }, { row: 4, col: 3, type: 'signal_delay' }, { row: 2, col: 1, type: 'uplink' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "SIEM_CENTER", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
       { count: 12, coneChance: 0.5, poleChance: 0.3, bucketChance: 0.3, newspaperChance: 0.2, aptChance: 0.1, glitchChance: 0.15 },
       { count: 16, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, footballChance: 0.2, aptChance: 0.15, glitchChance: 0.2 },
@@ -381,7 +391,7 @@ const LEVEL_DATABASE = {
   "9-4": {
     name: "Satellite Net - Level 4", stage: 9, gridMode: '5_LANE', initialTokens: 75, tokenSpawnRate: 6000,
     terrain: [{ row: 1, col: 4, type: 'signal_delay' }, { row: 3, col: 4, type: 'signal_delay' }, { row: 2, col: 1, type: 'uplink' }, { row: 0, col: 1, type: 'uplink' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "HONEYPOT_CLUSTER", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
       { count: 14, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.3, newspaperChance: 0.25, glitchChance: 0.2, aptChance: 0.15 },
       { count: 18, coneChance: 0.6, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, glitchChance: 0.25, rootkitChance: 0.1 },
@@ -422,7 +432,7 @@ const LEVEL_DATABASE = {
   "10-3": {
     name: "Quantum Core - Level 3", stage: 10, gridMode: '6_LANE_POOL', initialTokens: 100, tokenSpawnRate: 5000,
     terrain: [{ row: 1, col: 5, type: 'quantum' }, { row: 4, col: 5, type: 'quantum' }],
-    reward: null, unlockedTowers: ALL_TOWER_KEYS,
+    reward: "QUANTUM_FIREWALL", unlockedTowers: ALL_TOWER_KEYS,
     waves: [
       { count: 14, coneChance: 0.55, poleChance: 0.35, bucketChance: 0.35, newspaperChance: 0.3, spywareChance: 0.2, adwareChance: 0.15, cryptolockerChance: 0.1, aptChance: 0.15 },
       { count: 18, coneChance: 0.6, poleChance: 0.4, bucketChance: 0.35, newspaperChance: 0.3, footballChance: 0.25, glitchChance: 0.2, aptChance: 0.2, rootkitChance: 0.15 },

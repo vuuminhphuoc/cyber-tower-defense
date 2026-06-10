@@ -268,6 +268,12 @@ class Tower {
         this._attackFlash = now;
         const proj = new Projectile(this.centerX() + 20, this.centerY() - 8, this.cfg.damage, this.row);
         if (this.cfg.slow) { proj.slow = this.cfg.slow; proj.slowDuration = this.cfg.slowDuration; }
+        // SIEM Center damage buff
+        for (const p of towers) {
+          if (p.markedForDeletion || p.type !== 'aura_damage' || p.row !== this.row) continue;
+          proj.damage = Math.floor(proj.damage * (p.cfg.damageBuff || 1.25));
+          break;
+        }
         this._applyTerrainToProjectile(proj);
         projectiles.push(proj);
         Sound.shoot();
@@ -412,6 +418,112 @@ class Tower {
         });
         this._lastScanTime = now;
       }
+    } else if (this.type === 'support_reveal') {
+      // Log Analyzer: reveal cloaked threats within revealRadius tiles
+      const rr = (this.cfg.revealRadius || 3) * CELL_W;
+      threats.forEach(z => {
+        if (z.markedForDeletion || z.type !== 'APT') return;
+        if (Math.abs(z.x - this.x) < rr && z.row === this.row) {
+          z._cloaked = false;
+          z._cloakUntil = Math.min(z._cloakUntil, now + (z.cfg.cloakTime || 5000) * 0.5);
+        }
+      });
+    } else if (this.type === 'trap') {
+      // Sandbox: trap threats that walk over it
+      if (!this._trapping) {
+        const prey = threats.find(z =>
+          !z.markedForDeletion &&
+          z.x + z.width > this.x && z.x < this.x + this.width &&
+          (z.row === this.row || z.type === 'BOSS') &&
+          (!z._cloaked)
+        );
+        if (prey) {
+          this._trapping = true;
+          this._trapTarget = prey;
+          this._trapUntil = now + (this.cfg.trapDuration || 3000);
+          prey._trapped = true;
+          prey._trappedUntil = now + (this.cfg.trapDuration || 3000);
+          prey._slowUntil = now + (this.cfg.trapDuration || 3000) + 5000;
+          prey._slowFactor = this.cfg.trapSlow || 0.8;
+          spawnFloatingText(prey.centerX(), prey.y - 10, 'TRAPPED!', '#ffaa00');
+        }
+      } else if (now >= this._trapUntil) {
+        this._trapping = false;
+        if (this._trapTarget && !this._trapTarget.markedForDeletion) {
+          this._trapTarget._trapped = false;
+        }
+        this._trapTarget = null;
+      }
+    } else if (this.type === 'aura_slow') {
+      // Rate Limiter: slow threats in aura radius
+      if (!this._lastAuraTime) this._lastAuraTime = 0;
+      if (now - this._lastAuraTime >= 500) {
+        this._lastAuraTime = now;
+        const ar = (this.cfg.auraRadius || 2) * CELL_W;
+        threats.forEach(z => {
+          if (z.markedForDeletion) return;
+          if (Math.abs(z.x - this.x) < ar && z.row === this.row) {
+            z._slowUntil = Math.max(z._slowUntil || 0, now + 1000);
+            z._slowFactor = Math.min(z._slowFactor || 1, this.cfg.slowAura || 0.7);
+          }
+        });
+      }
+    } else if (this.type === 'defender_aura') {
+      // Zero Trust Gate: reduce nearby threat damage
+      // (passive aura, effect is applied in Threat.update via tower proximity check)
+    } else if (this.type === 'aura_damage') {
+      // SIEM Center: buff nearby towers' damage (applied in Projectile.update)
+    } else if (this.type === 'reviver') {
+      // Cloud Backup: revive destroyed towers (handled via onTowerDestroyed hook)
+    } else if (this.type === 'pierce_shooter') {
+      // Quantum Firewall: fires piercing projectiles
+      const hasTarget = threats.some(z =>
+        !z.markedForDeletion && z.x + z.width > this.x &&
+        (z.row === this.row || z.type === 'BOSS') &&
+        (!z._cloaked)
+      );
+      if (hasTarget && now - this.lastFired >= this.cfg.fireRate) {
+        this.lastFired = now;
+        this._attackFlash = now;
+        const proj = new Projectile(this.centerX() + 20, this.centerY() - 8, this.cfg.damage, this.row);
+        proj.pierceCount = this.cfg.pierceCount || 3;
+        proj.pierceDecay = this.cfg.pierceDecay || 0.8;
+        proj.pierceHit = [];
+        projectiles.push(proj);
+        Sound.shoot();
+      }
+    } else if (this.type === 'chomper_aoe') {
+      // Honeypot Cluster: eat low-HP threats + AoE slow
+      if (this._chewing) {
+        if (now >= this._chewUntil) this._chewing = false;
+      } else {
+        const threshold = this.cfg.eatThreshold || 0.4;
+        const prey = threats.find(z =>
+          !z.markedForDeletion &&
+          z.x + z.width > this.x && z.x < this.x + this.width + 40 &&
+          (z.row === this.row || z.type === 'BOSS') &&
+          (!z._cloaked) && (z.hp / z.maxHp) <= threshold
+        );
+        if (prey) {
+          prey.markedForDeletion = true;
+          score += 10;
+          this._chewing = true;
+          this._chewUntil = now + (this.cfg.chewTime || 15000);
+          spawnParticles(this.centerX(), this.centerY(), 10, '#ffaa00');
+          spawnFloatingText(this.centerX(), this.y - 10, 'DIGESTING', '#ffaa00');
+          // AoE slow in radius
+          const aoeR = (this.cfg.aoeRadius || 2) * CELL_W;
+          const aoeSlow = this.cfg.aoeSlow || 0.6;
+          const aoeDur = this.cfg.aoeDuration || 5000;
+          threats.forEach(z => {
+            if (z.markedForDeletion || z === prey) return;
+            if (Math.abs(z.centerX() - this.centerX()) < aoeR && z.row === this.row) {
+              z._slowUntil = Math.max(z._slowUntil || 0, now + aoeDur);
+              z._slowFactor = Math.min(z._slowFactor || 1, aoeSlow);
+            }
+          });
+        }
+      }
     }
   }
 
@@ -497,10 +609,36 @@ class Projectile {
     this.markedForDeletion = false;
     this.slow = 0;
     this.slowDuration = 0;
+    // pierce support (Quantum Firewall)
+    this.pierceCount = 0;
+    this.pierceDecay = 0.8;
+    this.pierceHit = [];
   }
   update() {
     const dt = deltaTime / 16.67;
     this.x += this.speed * dt;
+    // pierce: check if projectile passes through threats
+    if (this.pierceCount > 0) {
+      for (let i = threats.length - 1; i >= 0; i--) {
+        const z = threats[i];
+        if (z.markedForDeletion || this.pierceHit.includes(z)) continue;
+        if (z.row !== this.row && z.type !== 'BOSS') continue;
+        if (this.x >= z.x && this.x <= z.x + z.width) {
+          const dmg = this.damage;
+          z.takeDamage(dmg);
+          if (z.hp <= 0) {
+            z.markedForDeletion = true;
+            score += 10;
+            Sound.threatDie();
+            spawnParticles(z.centerX(), z.centerY(), 6, '#c5f');
+          }
+          this.pierceHit.push(z);
+          this.pierceCount--;
+          this.damage = Math.floor(this.damage * (this.pierceDecay || 0.8));
+          if (this.pierceCount <= 0) { this.markedForDeletion = true; break; }
+        }
+      }
+    }
     if (this.x > canvas.width) this.markedForDeletion = true;
   }
   draw() {
@@ -562,6 +700,11 @@ class Threat {
     this._hijackUntil = 0;
     // Botnet swarm
     this._swarmSpawned = false;
+    // Sandbox trap
+    this._trapped = false;
+    this._trappedUntil = 0;
+    // Zero Trust damage reduction (set by aura proximity)
+    this._dmgReduction = 1;
   }
 
   centerX() { return this.x + this.width / 2; }
@@ -572,6 +715,24 @@ class Threat {
     this.isEating = false;
     const dt = deltaTime / 16.67;
     const now = gameTime;
+
+    // sandbox trap: cannot move or attack
+    if (this._trapped && now < this._trappedUntil) {
+      return; // fully immobilized
+    }
+    if (this._trapped && now >= this._trappedUntil) {
+      this._trapped = false;
+    }
+
+    // Zero Trust Gate: reduce damage dealt by this threat
+    this._dmgReduction = 1;
+    for (const p of towers) {
+      if (p.markedForDeletion || p.type !== 'defender_aura') continue;
+      if (p.row === this.row && Math.abs(p.x - this.x) < (p.cfg.auraRadius || 1) * CELL_W) {
+        this._dmgReduction = Math.min(this._dmgReduction, p.cfg.damageReduction || 0.85);
+        break;
+      }
+    }
 
     // slow effect
     if (now < this._slowUntil) {
@@ -599,7 +760,7 @@ class Threat {
     if (target) {
       this.isEating = true;
       if (now - this._eatSoundAt > 500) { Sound.threatEat(); this._eatSoundAt = now; }
-      target.hp -= this.damage * dt / 60;
+      target.hp -= this.damage * dt / 60 * this._dmgReduction;
       // Spyware: steal coins when eating (once per 2s)
       if (this.type === 'SPYWARE' && now - this._lastStealTime > 2000) {
         this._lastStealTime = now;
