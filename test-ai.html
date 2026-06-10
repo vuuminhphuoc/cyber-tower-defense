@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>AI Test - Cyber Defenders</title>
+  <style>
+    body { background: #0a0e14; color: #00ff41; font-family: Courier New, monospace; padding: 20px; }
+    h2 { color: #00ff41; }
+    label { display: block; margin: 10px 0 4px; color: #00cc33; }
+    input, select { width: 100%; max-width: 400px; padding: 8px; background: #111820; border: 1px solid #00ff41; color: #00ff41; font-family: Courier New, monospace; font-size: 14px; }
+    button { margin: 10px 5px 0 0; padding: 8px 16px; background: #00ff41; color: #000; border: none; cursor: pointer; font-weight: bold; font-family: Courier New, monospace; }
+    button:hover { background: #00cc33; }
+    #log { margin-top: 20px; padding: 12px; background: #111820; border: 1px solid #333; max-width: 800px; white-space: pre-wrap; font-size: 13px; max-height: 500px; overflow-y: auto; }
+    .ok { color: #00ff41; }
+    .err { color: #ff4444; }
+    .info { color: #ffaa00; }
+  </style>
+</head>
+<body>
+  <h2>🤖 AI Provider Test</h2>
+
+  <label>Provider</label>
+  <select id="provider" onchange="onProviderChange()">
+    <option value="openai-compatible">OpenAI</option>
+    <option value="openrouter">OpenRouter</option>
+    <option value="groq">Groq</option>
+    <option value="together">Together AI</option>
+    <option value="deepseek">DeepSeek</option>
+    <option value="anthropic">Anthropic</option>
+    <option value="gemini" selected>Google Gemini</option>
+    <option value="custom">Custom (OpenAI-compatible)</option>
+  </select>
+
+  <label>API URL</label>
+  <input id="apiUrl" value="https://generativelanguage.googleapis.com" />
+
+  <label>API Key</label>
+  <input id="apiKey" type="password" placeholder="AIza..." />
+
+  <label>Model</label>
+  <select id="modelSelect" style="display:none;"></select>
+  <input id="modelInput" value="gemini-1.5-flash" />
+
+  <div>
+    <button onclick="fetchModels()">🔄 Fetch Models</button>
+    <button onclick="testChat()">💬 Test Chat</button>
+    <button onclick="testGameAI()">🎮 Test Game AI</button>
+  </div>
+
+  <div id="log"></div>
+
+  <script src="js/config.js"></script>
+  <script src="js/save.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/grid.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/combat.js"></script>
+  <script src="js/waves.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/screens.js"></script>
+  <script src="js/shop.js"></script>
+  <script src="js/almanac.js"></script>
+  <script src="js/ai/ai-provider.js"></script>
+  <script src="js/ai/ai-prompt.js"></script>
+  <script src="js/ai/ai-validator.js"></script>
+  <script src="js/ai/ai-settings.js"></script>
+  <script src="js/ai/ai-state.js"></script>
+  <script src="js/ai/ai-actions.js"></script>
+  <script src="js/ai/ai-rule-bot.js"></script>
+  <script src="js/ai/ai-controller.js"></script>
+  <script src="js/polish.js"></script>
+  <script>
+    function log(msg, cls) {
+      const el = document.getElementById('log');
+      const span = document.createElement('div');
+      span.className = cls || '';
+      span.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+      el.appendChild(span);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    function getConfig() {
+      return {
+        provider: document.getElementById('provider').value,
+        apiUrl: document.getElementById('apiUrl').value.trim(),
+        apiKey: document.getElementById('apiKey').value.trim(),
+        model: document.getElementById('modelSelect').style.display !== 'none'
+          ? document.getElementById('modelSelect').value
+          : document.getElementById('modelInput').value.trim(),
+        temperature: 0.2,
+        maxTokens: 500
+      };
+    }
+
+    function onProviderChange() {
+      const presets = {
+        'openai-compatible': 'https://api.openai.com/v1/chat/completions',
+        'openrouter': 'https://openrouter.ai/api/v1/chat/completions',
+        'groq': 'https://api.groq.com/openai/v1/chat/completions',
+        'together': 'https://api.together.xyz/v1/chat/completions',
+        'deepseek': 'https://api.deepseek.com/v1/chat/completions',
+        'anthropic': 'https://api.anthropic.com/v1/messages',
+        'gemini': 'https://generativelanguage.googleapis.com',
+        'custom': ''
+      };
+      const p = document.getElementById('provider').value;
+      document.getElementById('apiUrl').value = presets[p] || '';
+      // reset to input mode
+      document.getElementById('modelSelect').style.display = 'none';
+      document.getElementById('modelInput').style.display = '';
+    }
+
+    async function fetchModels() {
+      const config = getConfig();
+      log('Fetching models for ' + config.provider + '...', 'info');
+      try {
+        const models = await AIProvider.fetchModels(config);
+        const sel = document.getElementById('modelSelect');
+        const inp = document.getElementById('modelInput');
+        sel.innerHTML = '';
+        for (const m of models) {
+          const opt = document.createElement('option');
+          opt.value = m;
+          opt.textContent = m;
+          sel.appendChild(opt);
+        }
+        // if current model in list, select it
+        const cur = inp.value;
+        const match = sel.querySelector('option[value="' + cur + '"]');
+        if (match) match.selected = true;
+        sel.style.display = '';
+        inp.style.display = 'none';
+        log('OK: Loaded ' + models.length + ' models: ' + models.slice(0, 10).join(', ') + (models.length > 10 ? '...' : ''), 'ok');
+      } catch (e) {
+        log('ERROR: ' + e.message, 'err');
+        document.getElementById('modelSelect').style.display = 'none';
+        document.getElementById('modelInput').style.display = '';
+      }
+    }
+
+    async function testChat() {
+      const config = getConfig();
+      log('Testing chat with ' + config.model + '...', 'info');
+      try {
+        const res = await AIProvider.call(config, [
+          { role: 'user', content: 'Say "Hello from Cyber Defenders AI!" in exactly 5 words.' }
+        ]);
+        log('Response: ' + res, 'ok');
+      } catch (e) {
+        log('ERROR: ' + e.message, 'err');
+      }
+    }
+
+    async function testGameAI() {
+      const config = getConfig();
+      log('Testing game AI decision...', 'info');
+
+      // simulate a game state
+      const fakeState = {
+        level: '1-1',
+        stage: 1,
+        credits: 150,
+        score: 0,
+        wave: '0/2',
+        waveActive: false,
+        gridRows: 5,
+        gridCols: 9,
+        mowers: [true, true, true, true, true],
+        availableTowers: [
+          { key: 'BITCOIN_MINER', cost: 50, type: 'producer', dps: 0, cooldownReady: true },
+          { key: 'FIREWALL', cost: 100, type: 'shooter', dps: 25, cooldownReady: true },
+          { key: 'FIREWALL_WALL', cost: 50, type: 'defender', dps: 0, cooldownReady: true }
+        ],
+        lanes: [
+          { row: 0, threats: [{ type: 'BASIC', x: 800, hp: 200, maxHp: 200, eating: false, speed: 0.15, danger: 30 }], towers: [], cells: [], danger: 30 },
+          { row: 1, threats: [], towers: [], cells: [], danger: 0 },
+          { row: 2, threats: [{ type: 'CONEHEAD', x: 700, hp: 560, maxHp: 560, eating: false, speed: 0.15, danger: 84 }], towers: [], cells: [], danger: 84 },
+          { row: 3, threats: [], towers: [], cells: [], danger: 0 },
+          { row: 4, threats: [], towers: [], cells: [], danger: 0 }
+        ],
+        tokens: [],
+        coins: []
+      };
+
+      // build legal actions
+      const legalActions = [
+        { type: 'collect_all' },
+        { type: 'place_tower', tower: 'BITCOIN_MINER', row: 1, col: 0 },
+        { type: 'place_tower', tower: 'BITCOIN_MINER', row: 3, col: 0 },
+        { type: 'place_tower', tower: 'FIREWALL', row: 0, col: 5 },
+        { type: 'place_tower', tower: 'FIREWALL', row: 2, col: 5 },
+        { type: 'place_tower', tower: 'FIREWALL_WALL', row: 0, col: 7 },
+        { type: 'place_tower', tower: 'FIREWALL_WALL', row: 2, col: 7 },
+        { type: 'send_wave' },
+        { type: 'toggle_speed' },
+        { type: 'wait' }
+      ];
+
+      const messages = [
+        { role: 'system', content: buildSystemPrompt({ playStyle: 'safe', maxActions: 2 }) },
+        { role: 'user', content: buildUserPrompt(fakeState, legalActions, 'safe') }
+      ];
+
+      log('Sending to ' + config.model + '...', 'info');
+      try {
+        const res = await AIProvider.call(config, messages);
+        log('Raw response:\n' + res, 'info');
+
+        const validated = AIValidator.validate(res, legalActions);
+        if (validated.valid) {
+          log('Validated actions: ' + JSON.stringify(validated.actions), 'ok');
+          log('Thought: ' + validated.thought, 'ok');
+        } else {
+          log('Validation failed: ' + validated.error, 'err');
+        }
+      } catch (e) {
+        log('ERROR: ' + e.message, 'err');
+      }
+    }
+  </script>
+</body>
+</html>

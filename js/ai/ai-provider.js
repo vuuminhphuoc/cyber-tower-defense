@@ -134,6 +134,12 @@ async function callAnthropic(config, messages) {
 async function callGemini(config, messages) {
   const systemMsg = messages.find(m => m.role === 'system');
   const userMsgs = messages.filter(m => m.role !== 'system');
+
+  // merge system prompt into first user message (not all Gemini models support systemInstruction)
+  if (systemMsg && userMsgs.length > 0) {
+    userMsgs[0] = { role: 'user', content: systemMsg.content + '\n\n' + userMsgs[0].content };
+  }
+
   const contents = userMsgs.map(m => ({
     role: m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: m.content }]
@@ -146,7 +152,6 @@ async function callGemini(config, messages) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       contents,
-      systemInstruction: systemMsg ? { parts: [{ text: systemMsg.content }] } : undefined,
       generationConfig: {
         temperature: config.temperature || 0.2,
         maxOutputTokens: config.maxTokens || 500
