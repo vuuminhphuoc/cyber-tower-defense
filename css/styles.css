@@ -148,6 +148,7 @@ canvas {
 .level-btn.locked { background: #1a1a2e; color: #444; border-color: #333; cursor: not-allowed; }
 .level-btn.beaten { border-color: #00ffff; box-shadow: 0 0 6px rgba(0,255,255,0.3); }
 #menu-wallet { display: flex; gap: 18px; font-size: 16px; font-weight: bold; }
+#menu-stats { display: flex; gap: 16px; font-size: 13px; color: #00cc33; justify-content: center; flex-wrap: wrap; }
 
 /* Seed chooser */
 #chosen-bar {

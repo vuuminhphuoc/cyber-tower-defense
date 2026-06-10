@@ -110,6 +110,7 @@ function showScreen(state) {
   if (typeof screenAlmanac !== 'undefined') screenAlmanac.classList.toggle('active', state === GAME_STATE.ALMANAC);
   if (typeof screenHelp !== 'undefined') screenHelp.classList.toggle('active', state === GAME_STATE.HELP);
   screenChallenges.classList.toggle('active', state === GAME_STATE.CHALLENGES);
+  screenAchievements.classList.toggle('active', state === GAME_STATE.ACHIEVEMENTS);
   document.body.classList.toggle('playing', state === GAME_STATE.PLAYING);
 }
 
@@ -139,6 +140,13 @@ function goToMenu() {
 function buildMenu() {
   document.getElementById('wallet-coins').textContent = saveData.wallet.coins;
   document.getElementById('wallet-diamonds').textContent = saveData.wallet.diamonds;
+  // stats
+  const achCount = (typeof Achievements !== 'undefined') ? Achievements.getCount() : 0;
+  const levelsBeaten = saveData.progress.maxLevelIndex;
+  const towersUnlocked = saveData.inventory.unlockedTowers.length;
+  document.getElementById('stat-achievements').textContent = achCount;
+  document.getElementById('stat-levels').textContent = levelsBeaten;
+  document.getElementById('stat-towers').textContent = towersUnlocked;
   const container = document.getElementById('menu-levels');
   container.innerHTML = '';
   LEVEL_ORDER.forEach((id, idx) => {
@@ -382,6 +390,36 @@ document.getElementById('challenges-btn').addEventListener('click', () => {
   showScreen(GAME_STATE.CHALLENGES);
 });
 document.getElementById('challenge-back-btn').addEventListener('click', goToMenu);
+
+// ===== ACHIEVEMENTS SCREEN =====
+const screenAchievements = document.getElementById('screen-achievements');
+
+function buildAchievementsScreen() {
+  const container = document.getElementById('achievements-list');
+  container.innerHTML = '';
+  const achDefs = (typeof ACHIEVEMENT_DEFS !== 'undefined') ? ACHIEVEMENT_DEFS : [];
+  const unlocked = (typeof Achievements !== 'undefined') ? Achievements.unlocked : [];
+  for (const ach of achDefs) {
+    const isUnlocked = unlocked.includes(ach.id);
+    const div = document.createElement('div');
+    div.className = 'almanac-card' + (isUnlocked ? '' : ' locked');
+    div.style.opacity = isUnlocked ? '1' : '0.4';
+    div.style.borderColor = isUnlocked ? '#ffd700' : '#333';
+    div.innerHTML = '<div class="alc-emoji">' + ach.icon + '</div>' +
+      '<div class="alc-name" style="color:' + (isUnlocked ? '#ffd700' : '#555') + '">' + ach.name + '</div>' +
+      '<div class="alc-stats">' + ach.desc + '</div>' +
+      '<div style="font-size:11px;margin-top:4px;color:' + (isUnlocked ? '#00ff41' : '#444') + '">' +
+      (isUnlocked ? '✓ UNLOCKED' : '🔒 LOCKED') + '</div>';
+    container.appendChild(div);
+  }
+}
+
+document.getElementById('achievements-btn').addEventListener('click', () => {
+  Sound.menuClick();
+  buildAchievementsScreen();
+  showScreen('ACHIEVEMENTS');
+});
+document.getElementById('achievements-back-btn').addEventListener('click', goToMenu);
 
 function launchChallenge(mode) {
   gameMode = mode;

@@ -9,7 +9,7 @@
 // =====================================================================
 
 // ===== State Machine =====
-const GAME_STATE = { MENU: 'MENU', SEED_CHOOSER: 'SEED_CHOOSER', PLAYING: 'PLAYING', SHOP: 'SHOP', ALMANAC: 'ALMANAC', HELP: 'HELP', CHALLENGES: 'CHALLENGES' };
+const GAME_STATE = { MENU: 'MENU', SEED_CHOOSER: 'SEED_CHOOSER', PLAYING: 'PLAYING', SHOP: 'SHOP', ALMANAC: 'ALMANAC', HELP: 'HELP', CHALLENGES: 'CHALLENGES', ACHIEVEMENTS: 'ACHIEVEMENTS' };
 let gameState = GAME_STATE.MENU;
 let currentLevelId = null;
 let currentLevel = null;
