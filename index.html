@@ -208,10 +208,12 @@
         <input id="ai-api-url" class="ai-input" type="url" placeholder="https://api.openai.com/v1/chat/completions" />
       </label>
       <label class="ai-label">API Key
-        <input id="ai-api-key" class="ai-input" type="password" placeholder="sk-..." />
+        <input id="ai-api-key" class="ai-input" type="password" placeholder="sk-..." onblur="AISettings.fetchModels()" />
       </label>
       <label class="ai-label">Model
-        <input id="ai-model" class="ai-input" type="text" placeholder="gpt-4o-mini" />
+        <select id="ai-model-select" class="ai-input" style="display:none;"></select>
+        <input id="ai-model-input" class="ai-input" type="text" placeholder="gpt-4o-mini" />
+        <button class="btn" onclick="AISettings.fetchModels()" style="font-size:11px;padding:3px 8px;margin-top:4px;">🔄 Fetch Models</button>
       </label>
       <div style="display:flex;gap:10px;">
         <label class="ai-label" style="flex:1;">Temperature

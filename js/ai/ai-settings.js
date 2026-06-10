@@ -35,6 +35,7 @@ function saveAISettings(settings) {
 
 const AISettings = {
   screen: null,
+  fetchedModels: [],
   init() {
     this.screen = document.getElementById('screen-ai-settings');
   },
@@ -44,7 +45,7 @@ const AISettings = {
     document.getElementById('ai-provider').value = s.provider;
     document.getElementById('ai-api-url').value = s.apiUrl;
     document.getElementById('ai-api-key').value = s.apiKey;
-    document.getElementById('ai-model').value = s.model;
+    this.populateModelDropdown(s.model);
     document.getElementById('ai-temperature').value = s.temperature;
     document.getElementById('ai-max-tokens').value = s.maxTokens;
     document.getElementById('ai-tick-rate').value = s.tickRate;
@@ -53,14 +54,74 @@ const AISettings = {
     document.getElementById('ai-auto-fallback').checked = s.autoFallback;
     document.getElementById('ai-settings-status').textContent = 'Ready';
     showScreen(GAME_STATE.AI_SETTINGS);
+    // auto-fetch models if key exists
+    if (s.apiKey) {
+      this.fetchModels();
+    }
+  },
+  populateModelDropdown(selectedModel) {
+    const select = document.getElementById('ai-model-select');
+    const input = document.getElementById('ai-model-input');
+    // always keep input in sync for manual entry
+    input.value = selectedModel || '';
+    // if we have fetched models, populate dropdown
+    if (this.fetchedModels.length > 0) {
+      select.innerHTML = '';
+      for (const m of this.fetchedModels) {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m;
+        if (m === selectedModel) opt.selected = true;
+        select.appendChild(opt);
+      }
+      // if selected model not in list, add it
+      if (selectedModel && !this.fetchedModels.includes(selectedModel)) {
+        const opt = document.createElement('option');
+        opt.value = selectedModel;
+        opt.textContent = selectedModel + ' (saved)';
+        opt.selected = true;
+        select.insertBefore(opt, select.firstChild);
+      }
+      select.style.display = '';
+      input.style.display = 'none';
+    } else {
+      select.style.display = 'none';
+      input.style.display = '';
+    }
+  },
+  async fetchModels() {
+    const statusEl = document.getElementById('ai-settings-status');
+    const config = loadAISettings();
+    if (!config.apiKey && config.provider !== 'anthropic') {
+      statusEl.textContent = 'Enter API key first to fetch models.';
+      return;
+    }
+    statusEl.textContent = 'Fetching models...';
+    try {
+      const models = await AIProvider.fetchModels(config);
+      this.fetchedModels = models;
+      const currentModel = document.getElementById('ai-model-input').value ||
+        document.getElementById('ai-model-select').value;
+      this.populateModelDropdown(currentModel);
+      statusEl.textContent = 'Loaded ' + models.length + ' models.';
+    } catch (e) {
+      statusEl.textContent = 'Model fetch failed: ' + e.message + ' — you can type manually.';
+      // show input as fallback
+      document.getElementById('ai-model-select').style.display = 'none';
+      document.getElementById('ai-model-input').style.display = '';
+    }
   },
   save() {
+    // get model from whichever is visible
+    const select = document.getElementById('ai-model-select');
+    const input = document.getElementById('ai-model-input');
+    const model = select.style.display !== 'none' ? select.value : input.value;
     const s = {
       mode: document.getElementById('ai-mode-select').value,
       provider: document.getElementById('ai-provider').value,
       apiUrl: document.getElementById('ai-api-url').value,
       apiKey: document.getElementById('ai-api-key').value,
-      model: document.getElementById('ai-model').value,
+      model: model,
       temperature: parseFloat(document.getElementById('ai-temperature').value) || 0.2,
       maxTokens: parseInt(document.getElementById('ai-max-tokens').value) || 500,
       tickRate: parseInt(document.getElementById('ai-tick-rate').value) || 2000,
@@ -79,12 +140,17 @@ const AISettings = {
     const s = loadAISettings();
     s.apiKey = '';
     saveAISettings(s);
+    this.fetchedModels = [];
+    this.populateModelDropdown(s.model);
     document.getElementById('ai-settings-status').textContent = 'API key cleared.';
   },
   async testConnection() {
     const statusEl = document.getElementById('ai-settings-status');
     statusEl.textContent = 'Testing connection...';
     const config = loadAISettings();
+    config.model = document.getElementById('ai-model-select').style.display !== 'none'
+      ? document.getElementById('ai-model-select').value
+      : document.getElementById('ai-model-input').value;
     if (!config.apiKey) {
       statusEl.textContent = 'Error: No API key entered.';
       return;
@@ -118,6 +184,14 @@ function onProviderChange() {
   const preset = PROVIDER_PRESETS[provider];
   if (preset) {
     document.getElementById('ai-api-url').value = preset.url;
-    document.getElementById('ai-model').value = preset.model;
+    // set model in input (will be populated to dropdown on fetch)
+    document.getElementById('ai-model-input').value = preset.model;
+    document.getElementById('ai-model-input').style.display = '';
+    document.getElementById('ai-model-select').style.display = 'none';
+  }
+  // auto-fetch models if key is present
+  const key = document.getElementById('ai-api-key').value;
+  if (key) {
+    AISettings.fetchModels();
   }
 }
