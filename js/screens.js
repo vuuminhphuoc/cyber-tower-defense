@@ -119,6 +119,8 @@ function showScreen(state) {
   if (typeof screenHelp !== 'undefined') screenHelp.classList.toggle('active', state === GAME_STATE.HELP);
   screenChallenges.classList.toggle('active', state === GAME_STATE.CHALLENGES);
   screenAchievements.classList.toggle('active', state === GAME_STATE.ACHIEVEMENTS);
+  const screenAiSettings = document.getElementById('screen-ai-settings');
+  if (screenAiSettings) screenAiSettings.classList.toggle('active', state === GAME_STATE.AI_SETTINGS);
   document.body.classList.toggle('playing', state === GAME_STATE.PLAYING);
 }
 
@@ -137,6 +139,7 @@ function goToMenu() {
   tokens = [];
   coins = [];
   selectedTowerKey = null;
+  gameMode = 'campaign';
   // clear the canvas so no stale frame is shown behind the menu
   if (typeof ctx !== 'undefined' && ctx) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -474,6 +477,13 @@ document.getElementById('achievements-btn').addEventListener('click', () => {
   showScreen('ACHIEVEMENTS');
 });
 document.getElementById('achievements-back-btn').addEventListener('click', goToMenu);
+
+// ===== AI SETTINGS SCREEN =====
+document.getElementById('ai-settings-btn').addEventListener('click', () => {
+  Sound.menuClick();
+  AISettings.open();
+});
+document.getElementById('ai-settings-back-btn').addEventListener('click', goToMenu);
 
 function launchChallenge(mode) {
   gameMode = mode;

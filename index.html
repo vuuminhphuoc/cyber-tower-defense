@@ -62,6 +62,7 @@
       <button id="achievements-btn" class="btn btn-secondary">🏆 Achievements</button>
       <button id="shop-btn" class="btn btn-secondary">Tech Shop</button>
       <button id="almanac-btn" class="btn btn-secondary">Threat Database</button>
+      <button id="ai-settings-btn" class="btn btn-secondary">🤖 AI Settings</button>
       <button id="reset-save-btn" class="btn btn-secondary">Reset Progress</button>
     </div>
   </div>
@@ -181,6 +182,75 @@
     <button id="achievements-back-btn" class="btn btn-secondary">Back to Menu</button>
   </div>
 
+  <!-- ===== AI SETTINGS ===== -->
+  <div id="screen-ai-settings" class="screen">
+    <h2>🤖 AI Settings</h2>
+    <div style="max-width:420px;width:100%;text-align:left;">
+      <label class="ai-label">AI Mode
+        <select id="ai-mode-select" class="ai-input">
+          <option value="rule">⚙️ Rule Bot (local, free)</option>
+          <option value="llm">🧠 LLM Bot (requires API key)</option>
+        </select>
+      </label>
+      <label class="ai-label">Provider
+        <select id="ai-provider" class="ai-input" onchange="onProviderChange()">
+          <option value="openai-compatible">OpenAI</option>
+          <option value="openrouter">OpenRouter</option>
+          <option value="groq">Groq</option>
+          <option value="together">Together AI</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="gemini">Google Gemini</option>
+          <option value="custom">Custom (OpenAI-compatible)</option>
+        </select>
+      </label>
+      <label class="ai-label">API URL
+        <input id="ai-api-url" class="ai-input" type="url" placeholder="https://api.openai.com/v1/chat/completions" />
+      </label>
+      <label class="ai-label">API Key
+        <input id="ai-api-key" class="ai-input" type="password" placeholder="sk-..." />
+      </label>
+      <label class="ai-label">Model
+        <input id="ai-model" class="ai-input" type="text" placeholder="gpt-4o-mini" />
+      </label>
+      <div style="display:flex;gap:10px;">
+        <label class="ai-label" style="flex:1;">Temperature
+          <input id="ai-temperature" class="ai-input" type="number" min="0" max="2" step="0.1" value="0.2" />
+        </label>
+        <label class="ai-label" style="flex:1;">Max Tokens
+          <input id="ai-max-tokens" class="ai-input" type="number" min="50" max="4000" value="500" />
+        </label>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <label class="ai-label" style="flex:1;">Tick (ms)
+          <input id="ai-tick-rate" class="ai-input" type="number" min="500" max="10000" step="250" value="2000" />
+        </label>
+        <label class="ai-label" style="flex:1;">Max Actions
+          <input id="ai-max-actions" class="ai-input" type="number" min="1" max="5" value="2" />
+        </label>
+      </div>
+      <label class="ai-label">Play Style
+        <select id="ai-play-style" class="ai-input">
+          <option value="safe">🛡️ Safe</option>
+          <option value="aggressive">⚔️ Aggressive</option>
+          <option value="economy">💰 Economy</option>
+          <option value="speedrun">⚡ Speedrun</option>
+        </select>
+      </label>
+      <label class="ai-label" style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input id="ai-auto-fallback" type="checkbox" checked /> Auto-fallback to rule bot on error
+      </label>
+      <div id="ai-settings-status" style="font-size:12px;color:#00cc33;margin:8px 0;">Ready</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn" onclick="AISettings.testConnection()" style="font-size:13px;padding:6px 12px;">Test Connection</button>
+        <button class="btn" onclick="AISettings.save()" style="font-size:13px;padding:6px 12px;">Save</button>
+        <button class="btn btn-secondary" onclick="AISettings.clearKey()" style="font-size:13px;padding:6px 12px;">Clear Key</button>
+      </div>
+      <p style="font-size:11px;color:#666;margin-top:10px;">⚠️ API key stored in localStorage only. Never shared with anyone except your chosen provider.</p>
+    </div>
+    <button id="ai-settings-back-btn" class="btn btn-secondary" style="margin-top:12px;">Back to Menu</button>
+  </div>
+
   <!-- ===== FOOTER ===== -->
   <footer id="game-footer">
     <p>Fan-made tower defense game — Original gameplay, not affiliated with any existing franchise</p>
@@ -226,6 +296,10 @@
   <script src="js/ai/ai-state.js"></script>
   <script src="js/ai/ai-actions.js"></script>
   <script src="js/ai/ai-rule-bot.js"></script>
+  <script src="js/ai/ai-provider.js"></script>
+  <script src="js/ai/ai-prompt.js"></script>
+  <script src="js/ai/ai-validator.js"></script>
+  <script src="js/ai/ai-settings.js"></script>
   <script src="js/ai/ai-controller.js"></script>
   <script src="js/polish.js"></script>
   <script src="js/main.js"></script>
