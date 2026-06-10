@@ -411,14 +411,19 @@ const CHALLENGE_DEFS = [
 function buildChallengeScreen() {
   const container = document.getElementById('challenge-modes');
   container.innerHTML = '';
+  container.style.cssText = 'display:flex;flex-direction:column;gap:10px;align-items:center;width:100%;';
   CHALLENGE_DEFS.forEach(ch => {
     const unlocked = saveData.progress.maxLevelIndex >= ch.unlock;
     const div = document.createElement('div');
-    div.className = 'level-btn' + (unlocked ? '' : ' locked');
+    div.className = 'challenge-card' + (unlocked ? '' : ' locked');
     const best = localStorage.getItem(ch.bestKey) || '—';
-    div.innerHTML = '<span class="stage-emoji">' + ch.emoji + '</span>' +
-      '<span style="flex:1;text-align:left;">' + ch.name + '<br><small style="color:#666;">' + ch.desc + '</small></span>' +
-      '<span>' + (unlocked ? ch.bestLabel + ': ' + best : '🔒 Complete Stage ' + (ch.unlock + 1)) + '</span>';
+    div.innerHTML = '<span class="ch-emoji">' + ch.emoji + '</span>' +
+      '<div class="ch-info">' +
+        '<div class="ch-name">' + ch.name + '</div>' +
+        '<div class="ch-desc">' + ch.desc + '</div>' +
+        (unlocked ? '<div class="ch-best">' + ch.bestLabel + ': ' + best + '</div>' :
+          '<div class="ch-best" style="color:#555;">🔒 Complete Stage ' + (ch.unlock + 1) + ' to unlock</div>') +
+      '</div>';
     if (unlocked) div.addEventListener('click', () => { Sound.menuClick(); launchChallenge(ch.id); });
     container.appendChild(div);
   });
@@ -437,6 +442,7 @@ const screenAchievements = document.getElementById('screen-achievements');
 function buildAchievementsScreen() {
   const container = document.getElementById('achievements-list');
   container.innerHTML = '';
+  container.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;justify-content:center;max-width:760px;max-height:400px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#00cc33 #0a0e14;';
   const achDefs = (typeof ACHIEVEMENT_DEFS !== 'undefined') ? ACHIEVEMENT_DEFS : [];
   const unlocked = (typeof Achievements !== 'undefined') ? Achievements.unlocked : [];
   for (const ach of achDefs) {

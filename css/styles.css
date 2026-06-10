@@ -147,6 +147,24 @@ canvas {
 .level-btn .stage-emoji { font-size: 18px; }
 .level-btn.locked { background: #1a1a2e; color: #444; border-color: #333; cursor: not-allowed; }
 .level-btn.beaten { border-color: #00ffff; box-shadow: 0 0 6px rgba(0,255,255,0.3); }
+
+/* Challenge mode cards */
+.challenge-card {
+  width: 100%; max-width: 500px; border-radius: 4px; cursor: pointer;
+  border: 2px solid #00cc33; background: #111820; color: #00ff41;
+  display: flex; flex-direction: row; align-items: center; gap: 12px;
+  padding: 12px 16px; font-size: 14px;
+  transition: box-shadow .1s, transform .1s;
+}
+.challenge-card:hover { box-shadow: 0 0 10px rgba(0,255,65,0.3); transform: translateY(-1px); }
+.challenge-card .ch-emoji { font-size: 32px; flex-shrink: 0; }
+.challenge-card .ch-info { flex: 1; text-align: left; }
+.challenge-card .ch-name { font-weight: bold; font-size: 15px; color: #00ff41; }
+.challenge-card .ch-desc { font-size: 12px; color: #00cc33; margin-top: 2px; }
+.challenge-card .ch-best { font-size: 12px; color: #ffd700; margin-top: 4px; }
+.challenge-card.locked { background: #1a1a2e; color: #444; border-color: #333; cursor: not-allowed; opacity: 0.6; }
+.challenge-card.locked .ch-name { color: #555; }
+.challenge-card.locked .ch-desc { color: #444; }
 #menu-wallet { display: flex; gap: 18px; font-size: 16px; font-weight: bold; }
 #menu-stats { display: flex; gap: 16px; font-size: 13px; color: #00cc33; justify-content: center; flex-wrap: wrap; }
 
