@@ -18,10 +18,15 @@ function triggerGameOver() {
   Sound.loseSound();
   Sound.bgmStop();
   let subMsg = '';
+  const stats = 'Waves: ' + (currentWave + 1) + '/' + WAVES.length +
+    ' | Score: ' + score +
+    ' | Towers: ' + towers.length;
   if (gameMode === 'endless') {
     subMsg = 'Wave reached: ' + (endlessWave + 1) + ' | Best: ' + endlessBest;
   } else if (gameMode === 'speedrun' && speedrunStart > 0) {
     subMsg = 'Time: ' + formatTime(Math.floor((performance.now() - speedrunStart) / 1000));
+  } else {
+    subMsg = stats;
   }
   showOverlay('SYSTEM BREACH', '#e74c3c', 'Retry', subMsg, true);
   gameMode = 'campaign';
@@ -53,8 +58,11 @@ function beatLevel() {
 
   const msg = seedPacketReward
     ? 'New core: ' + TOWER_TYPES[seedPacketReward].emoji + ' ' + TOWER_TYPES[seedPacketReward].name + '!'
-    : '';
-  showOverlay('NETWORK SECURED', '#2ecc71', 'Back to Menu', msg);
+    : '💰 +' + rewardCoins + ' coins';
+  // show win stats
+  const mowersLeft = lawnMowers.filter(m => !m.markedForDeletion).length;
+  const winStats = 'Score: ' + score + ' | Mowers: ' + mowersLeft + '/' + gridRows;
+  showOverlay('NETWORK SECURED', '#2ecc71', 'Back to Menu', msg + ' | ' + winStats);
 }
 
 const overlay = document.getElementById('overlay');
