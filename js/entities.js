@@ -6,6 +6,35 @@
 //   Threat, spawnThreatByType
 // =====================================================================
 
+function drawEntityShadow(cx, cy, rx, ry, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha || 0.28;
+  const grd = ctx.createRadialGradient(cx, cy, 2, cx, cy, rx);
+  grd.addColorStop(0, 'rgba(0,0,0,0.8)');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawEntityPlatform(cx, cy, rx, color) {
+  ctx.save();
+  ctx.globalAlpha = 0.45;
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 5, rx, rx * 0.28, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.globalAlpha = 0.65;
+  ctx.strokeStyle = color || '#00ff41';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 3, rx, rx * 0.25, 0, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.restore();
+}
+
 // ========== Token ==========
 class Token {
   constructor(x, y, targetY) {
@@ -387,6 +416,10 @@ class Tower {
   }
 
   draw() {
+    const cx = this.centerX();
+    const cy = this.centerY();
+    drawEntityShadow(cx, this.y + this.height - 12, this.width * 0.34, 10, 0.32);
+    drawEntityPlatform(cx, this.y + this.height - 20, this.width * 0.32, this._terrain === 'overheated' ? '#ff7733' : '#00ff41');
     ctx.save();
     ctx.font = '54px serif';
     ctx.textAlign = 'center';
@@ -395,9 +428,9 @@ class Tower {
     const age = gameTime - this._placeTime;
     const scale = age < 300 ? 0.5 + 0.5 * (age / 300) : 1;
     if (scale !== 1) {
-      ctx.translate(this.centerX(), this.centerY() + 4);
+      ctx.translate(cx, cy + 4);
       ctx.scale(scale, scale);
-      ctx.translate(-this.centerX(), -(this.centerY() + 4));
+      ctx.translate(-cx, -(cy + 4));
     }
     if (this.type === 'mine' && !this._armed) ctx.globalAlpha = 0.35;
     if (this.type === 'chomper' && this._chewing) ctx.globalAlpha = 0.6;
@@ -408,7 +441,15 @@ class Tower {
       ctx.shadowColor = '#00ffff';
       ctx.shadowBlur = 20;
     }
-    ctx.fillText(this.cfg.emoji, this.centerX(), this.centerY() + 4);
+    // dark offset gives emoji towers a blocky, extruded 3D silhouette
+    const bodyAlpha = ctx.globalAlpha;
+    ctx.globalAlpha = bodyAlpha * 0.45;
+    ctx.fillStyle = '#001b0a';
+    ctx.fillText(this.cfg.emoji, cx + 4, cy + 12);
+    ctx.globalAlpha = bodyAlpha;
+    ctx.shadowColor = this._terrain === 'overheated' ? '#ff7733' : '#00ff41';
+    ctx.shadowBlur = 8;
+    ctx.fillText(this.cfg.emoji, cx, cy + 4);
     ctx.restore();
     // upgrade glow ring
     if (this.upgradeLevel >= 1) {
@@ -467,18 +508,22 @@ class Projectile {
     ctx.save();
     ctx.globalAlpha = 0.3;
     ctx.beginPath();
-    ctx.arc(this.x - 4, this.y, this.width / 2 + 2, 0, Math.PI * 2);
+    ctx.ellipse(this.x - 9, this.y + 6, this.width * 0.9, this.height * 0.38, 0, 0, Math.PI * 2);
     ctx.fillStyle = this.slow ? '#7ec8e3' : '#a4e44a';
     ctx.fill();
     ctx.restore();
     // main projectile
+    ctx.save();
+    ctx.shadowColor = this.slow ? '#7ec8e3' : '#a4e44a';
+    ctx.shadowBlur = 12;
     ctx.beginPath();
-    ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
+    ctx.ellipse(this.x, this.y, this.width / 2, this.height / 2.5, 0, 0, Math.PI * 2);
     ctx.fillStyle = this.slow ? '#7ec8e3' : '#a4e44a';
     ctx.fill();
     ctx.lineWidth = 2;
     ctx.strokeStyle = this.slow ? '#4a90b5' : '#5a9216';
     ctx.stroke();
+    ctx.restore();
   }
 }
 
@@ -672,6 +717,7 @@ class Threat {
   draw() {
     const cx = this.x + this.width / 2;
     const cy = this.y + this.height / 2;
+    drawEntityShadow(cx, this.y + this.height - 6, this.width * 0.55, 12, this._cloaked ? 0.12 : 0.35);
     ctx.save();
     ctx.font = '52px serif';
     ctx.textAlign = 'center';
@@ -681,7 +727,14 @@ class Threat {
     const bob = this.isEating ? 0 : Math.sin(gameTime / 200 + this.row * 1.5) * 2;
     // draw threat-specific emoji
     const cfg = THREAT_TYPES[this.type];
-    ctx.fillText(cfg ? cfg.emoji : '🦠', cx, cy + 6 + bob);
+    const emoji = cfg ? cfg.emoji : '🦠';
+    ctx.globalAlpha *= 0.45;
+    ctx.fillStyle = '#210000';
+    ctx.fillText(emoji, cx + 4, cy + 13 + bob);
+    ctx.globalAlpha = this._cloaked ? 0.2 : (this._slowUntil > gameTime ? 0.7 : 1);
+    ctx.shadowColor = this._slowUntil > gameTime ? '#7ec8e3' : '#ff3333';
+    ctx.shadowBlur = this.isEating ? 4 : 10;
+    ctx.fillText(emoji, cx, cy + 6 + bob);
     if (cfg && cfg.hat) {
       ctx.font = '22px serif';
       ctx.fillText(cfg.hat, cx, this.y - 2 + bob);

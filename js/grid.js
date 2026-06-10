@@ -63,6 +63,65 @@ const TERRAIN_STYLE = {
   entangled:    { a: '#0a2e2a', b: '#103a35', icon: '🔗', iconColor: '#5fc' }
 };
 
+function tileColor(cell, r, c) {
+  const style = TERRAIN_STYLE[cell.cellType];
+  if (cell.cellType === 'water') return (r + c) % 2 === 0 ? '#0a2e4a' : '#0c3555';
+  if (cell.cellType === 'grave') return (r + c) % 2 === 0 ? '#2a1520' : '#351a28';
+  if (style) return (r + c) % 2 === 0 ? style.a : style.b;
+  return (r + c) % 2 === 0 ? '#0a1a0a' : '#0e220e';
+}
+
+function draw3dTile(x, y, w, h, color, cell) {
+  const depth = Math.min(12, h * 0.12);
+  const inset = Math.min(12, w * 0.12);
+  const topY = y + 3;
+  const topH = h - depth - 4;
+  const grd = ctx.createLinearGradient(x, y, x, y + h);
+  grd.addColorStop(0, color);
+  grd.addColorStop(1, '#020806');
+
+  // top face: slightly skewed quadrilateral for isometric depth
+  ctx.beginPath();
+  ctx.moveTo(x + inset, topY + 4);
+  ctx.lineTo(x + w - inset, topY);
+  ctx.lineTo(x + w - 4, topY + topH);
+  ctx.lineTo(x + 4, topY + topH + 4);
+  ctx.closePath();
+  ctx.fillStyle = grd;
+  ctx.fill();
+
+  // front bevel
+  ctx.beginPath();
+  ctx.moveTo(x + 4, topY + topH + 4);
+  ctx.lineTo(x + w - 4, topY + topH);
+  ctx.lineTo(x + w - 10, y + h - 3);
+  ctx.lineTo(x + 10, y + h - 1);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fill();
+
+  // right bevel
+  ctx.beginPath();
+  ctx.moveTo(x + w - inset, topY);
+  ctx.lineTo(x + w - 4, topY + topH);
+  ctx.lineTo(x + w - 10, y + h - 3);
+  ctx.lineTo(x + w - inset - 5, topY + depth);
+  ctx.closePath();
+  ctx.fillStyle = 'rgba(0,255,65,0.05)';
+  ctx.fill();
+
+  // neon top edge
+  ctx.strokeStyle = cell.cellType === 'water' ? 'rgba(0,220,255,0.22)' : 'rgba(0,255,65,0.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + inset, topY + 4);
+  ctx.lineTo(x + w - inset, topY);
+  ctx.lineTo(x + w - 4, topY + topH);
+  ctx.lineTo(x + 4, topY + topH + 4);
+  ctx.closePath();
+  ctx.stroke();
+}
+
 function drawLawn() {
   const rows = gridRows;
   const ch = canvas.height / rows;
@@ -70,19 +129,7 @@ function drawLawn() {
     for (let c = 0; c < COLS; c++) {
       const cell = grid[r][c];
       const style = TERRAIN_STYLE[cell.cellType];
-      if (cell.cellType === 'water') {
-        // data stream — cyan/blue glow
-        ctx.fillStyle = (r + c) % 2 === 0 ? '#0a2e4a' : '#0c3555';
-      } else if (cell.cellType === 'grave') {
-        // corrupted block — red tint
-        ctx.fillStyle = (r + c) % 2 === 0 ? '#2a1520' : '#351a28';
-      } else if (style) {
-        ctx.fillStyle = (r + c) % 2 === 0 ? style.a : style.b;
-      } else {
-        // terminal grid — dark green/black
-        ctx.fillStyle = (r + c) % 2 === 0 ? '#0a1a0a' : '#0e220e';
-      }
-      ctx.fillRect(c * CELL_W, TOP_OFFSET + r * ch, CELL_W, ch);
+      draw3dTile(c * CELL_W, TOP_OFFSET + r * ch, CELL_W, ch, tileColor(cell, r, c), cell);
       // draw corrupted block icon
       if (cell.cellType === 'grave') {
         const gx = c * CELL_W + CELL_W / 2;
@@ -108,21 +155,10 @@ function drawLawn() {
       }
     }
   }
-  // grid lines — neon green
-  ctx.strokeStyle = 'rgba(0,255,65,0.15)';
-  ctx.lineWidth = 1;
-  for (let c = 0; c <= COLS; c++) {
-    ctx.beginPath();
-    ctx.moveTo(c * CELL_W, 0);
-    ctx.lineTo(c * CELL_W, canvas.height);
-    ctx.stroke();
-  }
-  for (let r = 0; r <= rows; r++) {
-    ctx.beginPath();
-    ctx.moveTo(0, TOP_OFFSET + r * ch);
-    ctx.lineTo(canvas.width, TOP_OFFSET + r * ch);
-    ctx.stroke();
-  }
+  // outer neon frame
+  ctx.strokeStyle = 'rgba(0,255,65,0.25)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
 }
 
 function pixelToCell(px, py) {
