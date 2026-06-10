@@ -286,7 +286,7 @@ AI.ruleBotDecide = function(state, legalActions) {
       for (const action of producerActions) {
         const lane = state.lanes.find(l => l.row === action.row);
         const danger = lane ? laneDanger(lane) : 0;
-        const score = -danger * 10 + action.col * 3; // prefer safe lane, left col
+        const score = -danger * 10 - action.col * 5; // prefer safe lane, LOW col (back)
         if (score > bestScore) {
           bestScore = score;
           bestProd = action;
@@ -327,7 +327,7 @@ AI.ruleBotDecide = function(state, legalActions) {
       for (const action of producerActions) {
         const lane = state.lanes.find(l => l.row === action.row);
         const danger = lane ? laneDanger(lane) : 0;
-        const score = -danger * 10 + action.col * 3;
+        const score = -danger * 10 - action.col * 5;
         if (score > bestScore) {
           bestScore = score;
           bestProd = action;
@@ -513,7 +513,7 @@ AI.ruleBotDecide = function(state, legalActions) {
       for (const action of producerActions) {
         const lane = state.lanes.find(l => l.row === action.row);
         const danger = lane ? laneDanger(lane) : 0;
-        const score = -danger * 10 + action.col * 3;
+        const score = -danger * 10 - action.col * 5;
         if (score > bestScore) {
           bestScore = score;
           bestProd = action;
