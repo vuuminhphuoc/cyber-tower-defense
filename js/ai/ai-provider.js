@@ -68,8 +68,8 @@ async function fetchOpenAICompatibleModels(config) {
 }
 
 async function fetchGeminiModels(config) {
-  const url = 'https://generativelanguage.googleapis.com/v1/models' +
-    (config.apiKey ? '?key=' + config.apiKey : '');
+  const base = config.apiUrl.replace(/\/$/, '');
+  const url = base + '/v1/models' + (config.apiKey ? '?key=' + config.apiKey : '');
   const res = await fetch(url);
   if (!res.ok) throw new Error('Fetch models failed: ' + res.status);
   const data = await res.json();
@@ -138,7 +138,8 @@ async function callGemini(config, messages) {
     role: m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: m.content }]
   }));
-  const url = config.apiUrl + '/v1/models/' + config.model + ':generateContent' +
+  const base = config.apiUrl.replace(/\/$/, '');
+  const url = base + '/v1/models/' + config.model + ':generateContent' +
     (config.apiKey ? '?key=' + config.apiKey : '');
   const res = await fetch(url, {
     method: 'POST',

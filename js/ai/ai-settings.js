@@ -91,12 +91,16 @@ const AISettings = {
   },
   async fetchModels() {
     const statusEl = document.getElementById('ai-settings-status');
-    const config = loadAISettings();
-    if (!config.apiKey && config.provider !== 'anthropic') {
+    // read directly from inputs (not localStorage — user may not have saved yet)
+    const apiKey = document.getElementById('ai-api-key').value.trim();
+    const provider = document.getElementById('ai-provider').value;
+    const apiUrl = document.getElementById('ai-api-url').value.trim();
+    if (!apiKey && provider !== 'anthropic') {
       statusEl.textContent = 'Enter API key first to fetch models.';
       return;
     }
     statusEl.textContent = 'Fetching models...';
+    const config = { provider, apiUrl, apiKey };
     try {
       const models = await AIProvider.fetchModels(config);
       this.fetchedModels = models;
@@ -106,7 +110,6 @@ const AISettings = {
       statusEl.textContent = 'Loaded ' + models.length + ' models.';
     } catch (e) {
       statusEl.textContent = 'Model fetch failed: ' + e.message + ' — you can type manually.';
-      // show input as fallback
       document.getElementById('ai-model-select').style.display = 'none';
       document.getElementById('ai-model-input').style.display = '';
     }
@@ -147,14 +150,17 @@ const AISettings = {
   async testConnection() {
     const statusEl = document.getElementById('ai-settings-status');
     statusEl.textContent = 'Testing connection...';
-    const config = loadAISettings();
-    config.model = document.getElementById('ai-model-select').style.display !== 'none'
+    const apiKey = document.getElementById('ai-api-key').value.trim();
+    const provider = document.getElementById('ai-provider').value;
+    const apiUrl = document.getElementById('ai-api-url').value.trim();
+    const model = document.getElementById('ai-model-select').style.display !== 'none'
       ? document.getElementById('ai-model-select').value
       : document.getElementById('ai-model-input').value;
-    if (!config.apiKey) {
+    if (!apiKey) {
       statusEl.textContent = 'Error: No API key entered.';
       return;
     }
+    const config = { provider, apiUrl, apiKey, model };
     try {
       const res = await AIProvider.call(config, [
         { role: 'user', content: 'Say "OK" if you can hear me. Reply with only the word OK.' }
