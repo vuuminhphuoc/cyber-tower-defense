@@ -27,16 +27,20 @@ AI.getState = function() {
     }
     threats.forEach(z => {
       if (z.row === r && !z.markedForDeletion) {
+        const cfg = THREAT_TYPES[z.type];
         threatsInLane.push({
           type: z.type,
           x: z.x,
           hp: z.hp,
           maxHp: z.maxHp,
-          eating: z.isEating
+          eating: z.isEating,
+          speed: cfg ? cfg.speed : 0,
+          danger: cfg ? cfg.hp * cfg.speed : 0
         });
       }
     });
-    lanes.push({ row: r, threats: threatsInLane, towers: towersInLane, cells });
+    const laneDangerScore = threatsInLane.reduce((sum, t) => sum + t.danger, 0);
+    lanes.push({ row: r, threats: threatsInLane, towers: towersInLane, cells, danger: laneDangerScore });
   }
   return {
     level: currentLevelId,
@@ -52,6 +56,7 @@ AI.getState = function() {
       key: k,
       cost: TOWER_TYPES[k].cost,
       type: TOWER_TYPES[k].type,
+      dps: TOWER_DPS ? (TOWER_DPS[k] || 0) : 0,
       cooldownReady: !towerCooldowns[k] || performance.now() >= towerCooldowns[k]
     })),
     lanes,
