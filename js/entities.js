@@ -161,6 +161,9 @@ class Tower {
     this.upgradeLevel = 0;
     this._totalInvested = this.cfg.cost;
     this._lastOverheat = gameTime;
+    // DNS Spoof redirect
+    this._spoofedUntil = 0;
+    this._spoofTarget = null;
     // apply terrain bonuses from the cell this tower sits on
     const cell = grid[row] && grid[row][col];
     this._terrain = cell ? cell.cellType : 'grass';
@@ -242,8 +245,14 @@ class Tower {
       const hasTarget = threats.some(z =>
         !z.markedForDeletion && z.x + z.width > this.x &&
         (z.row === this.row || z.type === 'BOSS') &&
-        (!z._cloaked) // skip cloaked APT threats
+        (!z._cloaked || z.type === 'INSIDER_THREAT') // skip cloaked APT (but not Insider Threat)
       );
+      // DNS Spoof: if spoofed, check if spoof target is alive
+      if (this._spoofedUntil > now && this._spoofTarget && !this._spoofTarget.markedForDeletion) {
+        // force fire at spoof target
+      } else if (this._spoofedUntil > now) {
+        this._spoofedUntil = 0; // spoof expired
+      }
       // adware slow: double the fire interval
       const adwareSlowed = now < this._adwareSlowUntil;
       const effectiveFireRate = adwareSlowed ? this.cfg.fireRate * 2 : this.cfg.fireRate;
@@ -734,11 +743,19 @@ class Threat {
       }
     }
 
+    // Supply Chain buff: if buffed by nearby Supply Chain, boost stats
+    if (this._supplyBuffed) {
+      this._supplyBuffed = false; // reset each frame, re-set by Supply Chain
+    }
     // slow effect
     if (now < this._slowUntil) {
       this.speed = this.baseSpeed * this._slowFactor;
     } else {
       this.speed = this.baseSpeed;
+    }
+    // Supply Chain: speed buff on top of slow
+    if (this._supplyBuffed || this._supplyBuffActive) {
+      this.speed *= 1.1; // +10% speed
     }
 
     // newspaper rage
@@ -808,6 +825,14 @@ class Threat {
         if (this.cfg.stealAmount || this.cfg.freezeTime || this.cfg.slowFireRate) {
           spawnParticles(this.centerX(), this.centerY(), 6, '#ffff00');
         }
+        // Malware Dropper: spawn glitches on death
+        if (this.cfg.spawnOnDeath) {
+          const count = this.cfg.spawnOnDeathCount || 2;
+          for (let i = 0; i < count; i++) {
+            queueThreatSpawn(this.cfg.spawnOnDeath, this.row);
+          }
+          spawnFloatingText(this.centerX(), this.y - 10, 'DROPPED!', '#ff3333');
+        }
       }
     }
 
@@ -845,6 +870,72 @@ class Threat {
         queueThreatSpawn('BASIC', this.row);
       }
     }
+
+    // SQL Injection: when eating a wall, deal % wall HP to towers behind it
+    if (this.type === 'SQL_INJECTION' && this.isEating && target && target.type === 'defender') {
+      if (!this._sqlPierced) {
+        this._sqlPierced = true;
+        const piercePct = target.cfg.pierceWall || 0.1;
+        const dmg = Math.floor(target.hp * piercePct);
+        // find tower behind the wall
+        const behindTower = towers.find(p =>
+          !p.markedForDeletion && p.row === this.row && p.x > target.x && p.type !== 'defender');
+        if (behindTower) {
+          behindTower.hp -= dmg;
+          spawnFloatingText(behindTower.centerX(), behindTower.y - 10, '-' + dmg + ' (pierce)', '#ff3333');
+          spawnParticles(behindTower.centerX(), behindTower.centerY(), 6, '#ff0000');
+          if (behindTower.hp <= 0) behindTower.markedForDeletion = true;
+        }
+        spawnFloatingText(this.centerX(), this.y - 10, 'SQL PIERCE!', '#ff3333');
+      }
+    } else if (this.type !== 'SQL_INJECTION') {
+      this._sqlPierced = false;
+    }
+
+    // Malware Dropper: spawn glitches on death (handled in hp <= 0 section below)
+
+    // DNS Spoofer: redirect nearest tower
+    if (this.type === 'DNS_SPOOFER' && !this._lastSpoofTime) this._lastSpoofTime = gameTime;
+    if (this.type === 'DNS_SPOOFER' && gameTime - (this._lastSpoofTime || 0) >= (this.cfg.spoofInterval || 8000)) {
+      this._lastSpoofTime = gameTime;
+      const nearest = towers.find(p =>
+        !p.markedForDeletion && p.row === this.row && p.x < this.x && p.type === 'shooter');
+      if (nearest) {
+        nearest._spoofedUntil = gameTime + (this.cfg.spoofDuration || 3000);
+        nearest._spoofTarget = this; // redirect to self
+        spawnFloatingText(nearest.centerX(), nearest.y - 10, 'SPOOFED!', '#ffaa00');
+      }
+    }
+
+    // Supply Chain: buff nearby threats
+    if (this.type === 'SUPPLY_CHAIN') {
+      threats.forEach(z => {
+        if (z === this || z.markedForDeletion) return;
+        const dist = Math.abs(z.x - this.x);
+        if (dist < (this.cfg.auraRadius || 2) * CELL_W && z.row === this.row) {
+          z._supplyBuffed = true;
+        }
+      });
+    }
+
+    // Quantum Worm: teleport forward
+    if (this.type === 'QUANTUM_WORM') {
+      if (!this._lastTeleportCheck) this._lastTeleportCheck = gameTime;
+      if (gameTime - this._lastTeleportCheck >= (this.cfg.teleportInterval || 1000)) {
+        this._lastTeleportCheck = gameTime;
+        if (Math.random() < (this.cfg.teleportChance || 0.3)) {
+          // teleport forward 1 cell (can't pass walls)
+          const newX = this.x - CELL_W;
+          const blocked = towers.some(p =>
+            !p.markedForDeletion && p.row === this.row && p.type === 'defender' &&
+            p.x + p.width > newX && p.x < this.x);
+          if (!blocked) {
+            this.x = newX;
+            spawnParticles(this.centerX(), this.centerY(), 8, '#c5f');
+          }
+        }
+      }
+    }
   }
 
   takeDamage(amount) {
@@ -865,8 +956,8 @@ class Threat {
     let best = null;
     for (const p of towers) {
       if (p.markedForDeletion || p.row !== this.row) continue;
-      // VPN cloaked towers are invisible to threats
-      if (p._cloaked) continue;
+      // VPN cloaked towers are invisible to threats (but Insider Threat ignores VPN)
+      if (p._cloaked && this.type !== 'INSIDER_THREAT') continue;
       const towerRight = p.x + p.width;
       if (this.x <= towerRight - 30 && this.x + this.width > p.x + 20) {
         if (!best || p.x > best.x) best = p;

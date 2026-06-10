@@ -67,7 +67,7 @@ function fail(message, details) {
 
     if (boot.levels !== 35) fail('Unexpected level count', JSON.stringify(boot, null, 2));
     if (boot.towers !== 26) fail('Unexpected tower count', JSON.stringify(boot, null, 2));
-    if (boot.threats !== 14) fail('Unexpected threat count', JSON.stringify(boot, null, 2));
+    if (boot.threats !== 20) fail('Unexpected threat count', JSON.stringify(boot, null, 2));
     if (!boot.bugButton) fail('Bug report button missing');
     console.log('PASS: Boot checks', boot);
 

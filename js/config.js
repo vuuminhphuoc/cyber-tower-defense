@@ -81,6 +81,15 @@ const THREAT_TYPES = {
   BOTNET:        { hp: 100,  speed: 0.3,  damage: 50,  emoji: '🕸️', name: 'Botnet', swarmCount: 3, desc: 'Spawns in groups of 3, low HP each' },
   APT:           { hp: 800,  speed: 0.12, damage: 150, emoji: '🎭', name: 'APT', cloakTime: 5000, desc: 'Advanced Persistent Threat, cloaks for 5s' },
   ROOTKIT:       { hp: 600,  speed: 0.15, damage: 100, emoji: '🐛', name: 'Rootkit', hijackDuration: 4000, desc: 'Hijacks tower for 4s, turning it against you' },
+
+  // --- v1.2 New Threats ---
+  SQL_INJECTION:     { hp: 450,  speed: 0.18, damage: 15,  emoji: '💉', name: 'SQL Injection', pierceWall: 0.1, desc: 'Pierces wall: 10% wall HP to tower behind it' },
+  MALWARE_DROPPER:   { hp: 700,  speed: 0.12, damage: 20,  emoji: '🦠', name: 'Malware Dropper', spawnOnDeath: 'GLITCH', spawnOnDeathCount: 2, desc: 'Spawns 2 Glitches on death' },
+  DNS_SPOOFER:       { hp: 500,  speed: 0.2,  damage: 18,  emoji: '🔄', name: 'DNS Spoofer', spoofInterval: 8000, spoofDuration: 3000, desc: 'Redirects nearest tower to shoot random threat for 3s' },
+  INSIDER_THREAT:    { hp: 650,  speed: 0.16, damage: 22,  emoji: '🕵️', name: 'Insider Threat', immuneToVpn: true, immuneToSpoof: true, desc: 'Immune to VPN and DNS redirect' },
+  SUPPLY_CHAIN:      { hp: 1200, speed: 0.1,  damage: 25,  emoji: '⛓️', name: 'Supply Chain Attack', auraHpBuff: 1.2, auraSpeedBuff: 1.1, auraRadius: 2, desc: 'Buffs nearby threats +20% HP, +10% speed' },
+  QUANTUM_WORM:      { hp: 500,  speed: 0.35, damage: 15,  emoji: '🪱', name: 'Quantum Worm', teleportChance: 0.3, teleportInterval: 1000, desc: '30% chance/s to teleport forward 1 cell' },
+
   BOSS:          { hp: 30000, speed: 0, damage: 0, emoji: '👾', name: 'Zero-Day Exploit' }
 };
 const THREAT_KEYS = Object.keys(THREAT_TYPES);
