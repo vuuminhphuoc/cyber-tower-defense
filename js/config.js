@@ -20,12 +20,12 @@ let CELL_H = canvas.height / ROWS;    // 100, updated per-level for pool mode
 // ===== Tower (defense) blueprints =====
 const TOWER_TYPES = {
   // --- Economy ---
-  BITCOIN_MINER:  { cost: 50,  hp: 300,  cooldown: 2000,  type: 'producer', emoji: '⛏️', name: 'Bitcoin Miner', tokenRate: 8000, desc: 'Generates 25 coins every 8s', upgradeCost: 30 },
-  CRYPTO_FARM:    { cost: 150, hp: 300,  cooldown: 2000,  type: 'producer', emoji: '🏦', name: 'Crypto Farm', tokenRate: 8000, desc: 'Generates 25 coins every 8s (faster)', upgradeCost: 75 },
+  BITCOIN_MINER:  { cost: 50,  hp: 300,  cooldown: 2000,  type: 'producer', emoji: '⛏️', name: 'Bitcoin Miner', tokenRate: 6000, desc: 'Generates 25 coins every 6s', upgradeCost: 30 },
+  CRYPTO_FARM:    { cost: 150, hp: 300,  cooldown: 2000,  type: 'producer', emoji: '🏦', name: 'Crypto Farm', tokenRate: 6000, desc: 'Generates 25 coins every 6s (faster)', upgradeCost: 75 },
 
   // --- Shooters ---
-  FIREWALL:       { cost: 100, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🧱', name: 'Firewall', damage: 25, fireRate: 1500, desc: 'Fires data packets, 25 dmg every 1.5s', upgradeCost: 50 },
-  ENCRYPTION:     { cost: 175, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🔐', name: 'Encryption Tower', damage: 20, fireRate: 1500, slow: 0.5, slowDuration: 2000, desc: 'Fires encrypted data, slows threats 50%', upgradeCost: 90 },
+  FIREWALL:       { cost: 100, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🧱', name: 'Firewall', damage: 30, fireRate: 1200, desc: 'Fires data packets, 30 dmg every 1.2s', upgradeCost: 50 },
+  ENCRYPTION:     { cost: 175, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🔐', name: 'Encryption Tower', damage: 25, fireRate: 1200, slow: 0.5, slowDuration: 2000, desc: 'Fires encrypted data, slows threats 50%', upgradeCost: 90 },
   DDoS_BOT:       { cost: 200, hp: 250,  cooldown: 2000,  type: 'multishooter', emoji: '🤖', name: 'DDoS Bot', damage: 5, fireRate: 400, multiShot: 2, desc: 'Fires 2 packets in rapid succession, 5 dmg each', upgradeCost: 100 },
   SNIPER:         { cost: 250, hp: 300,  cooldown: 2000,  type: 'shooter',  emoji: '🎯', name: 'Sniper Tower', damage: 120, fireRate: 2000, desc: 'High damage 120 dmg, fires every 2s', upgradeCost: 125 },
 
@@ -123,7 +123,7 @@ const LEVEL_DATABASE = {
     ]
   },
   "1-3": {
-    name: "Firewall - Level 3", stage: 1, initialTokens: 100, tokenSpawnRate: 7000,
+    name: "Firewall - Level 3", stage: 1, initialTokens: 150, tokenSpawnRate: 7000,
     reward: "DATA_PURGE", unlockedTowers: ['BITCOIN_MINER', 'FIREWALL', 'ENCRYPTION', 'FIREWALL_WALL'],
     waves: [
       { count: 4, coneChance: 0.2, poleChance: 0.1 },
@@ -151,7 +151,7 @@ const LEVEL_DATABASE = {
     ]
   },
   "1-6": {
-    name: "Firewall - Level 6", stage: 1, initialTokens: 50, tokenSpawnRate: 7000,
+    name: "Firewall - Level 6", stage: 1, initialTokens: 100, tokenSpawnRate: 7000,
     reward: "SYSTEM_WIPE", unlockedTowers: ['BITCOIN_MINER', 'FIREWALL', 'ENCRYPTION', 'FIREWALL_WALL', 'DATA_PURGE', 'TRIPWIRE', 'HONEYPOT'],
     waves: [
       { count: 6, coneChance: 0.3, poleChance: 0.2, bucketChance: 0.15 },
