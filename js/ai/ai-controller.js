@@ -26,8 +26,8 @@ AI.start = function() {
   // apply saved LLM settings
   const saved = loadAISettings();
   AI_CONFIG.mode = saved.mode || 'rule';
-  AI_CONFIG.tickRate = saved.tickRate || 2000;
-  AI_CONFIG.maxActionsPerTick = saved.maxActions || 2;
+  AI_CONFIG.tickRate = AI_CONFIG.mode === 'rule' ? 500 : (saved.tickRate || 750);
+  AI_CONFIG.maxActionsPerTick = AI_CONFIG.mode === 'rule' ? 3 : (saved.maxActions || 2);
   aiLastTick = performance.now();
   aiInterval = setInterval(async () => {
     if (gameOver || gameWon || gamePaused) return;

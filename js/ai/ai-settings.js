@@ -15,7 +15,7 @@ function defaultAISettings() {
     model: 'gpt-4o-mini',
     temperature: 0.2,
     maxTokens: 500,
-    tickRate: 2000,
+    tickRate: 750,
     maxActions: 2,
     playStyle: 'safe',
     autoFallback: true

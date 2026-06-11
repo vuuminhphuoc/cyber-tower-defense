@@ -265,12 +265,12 @@ function render() {
   coins.forEach(c => c.draw());
   // draw particles
   particles.forEach(p => {
-    const age = (performance.now() - p.born) / p.life;
+    const age = Math.min(1, (performance.now() - p.born) / p.life);
     ctx.save();
-    ctx.globalAlpha = 1 - age;
+    ctx.globalAlpha = Math.max(0, 1 - age);
     ctx.fillStyle = p.color;
     ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size * (1 - age * 0.5), 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, Math.max(0.1, p.size * (1 - age * 0.5)), 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
   });
