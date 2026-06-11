@@ -205,8 +205,9 @@ AI.ruleBotDecide = function(state, legalActions) {
   }
   if (shooterActions.length > 0) return d;
 
-  // 6. ECONOMY — additional producers (up to 5) when idle
-  if (totalProducers >= 1 && totalProducers < 5 && allThreats === 0 && state.credits >= 50) {
+  // 6. ECONOMY — additional producers (stage-adaptive: 3 for stage 1, 5 for stage 2+)
+  const maxMiners = (state.stage >= 2) ? 5 : 3;
+  if (totalProducers >= 1 && totalProducers < maxMiners && allThreats === 0 && state.credits >= 50) {
     const prod = placeActions.filter(a =>
       TOWER_TYPES[a.tower] && TOWER_TYPES[a.tower].type === 'producer' &&
       !laneHasProducer(state.lanes.find(l => l.row === a.row))
