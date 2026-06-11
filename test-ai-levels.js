@@ -13,9 +13,17 @@ async function testLevel(browser, levelId) {
   await page.goto('file:///C:/Users/ADMIN/Documents/GitHub/pvz-web/index.html');
   await sleep(1500);
 
+  // Check level exists
+  const levelExists = await page.evaluate((id) => !!LEVEL_DATABASE[id], levelId);
+  if (!levelExists) {
+    await page.close();
+    return { level: levelId, result: 'SKIP', reason: 'Level not found' };
+  }
+
   // Unlock all towers for this level, then open seed chooser
   await page.evaluate((id) => {
     const lvl = LEVEL_DATABASE[id];
+    if (!lvl) return;
     if (lvl && lvl.unlockedTowers) {
       lvl.unlockedTowers.forEach(k => {
         if (!saveData.inventory.unlockedTowers.includes(k)) {

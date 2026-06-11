@@ -205,8 +205,8 @@ AI.ruleBotDecide = function(state, legalActions) {
   }
   if (shooterActions.length > 0) return d;
 
-  // 6. ECONOMY — additional producers (up to 3) when idle
-  if (totalProducers >= 1 && totalProducers < 3 && allThreats === 0 && state.credits >= 50) {
+  // 6. ECONOMY — additional producers (up to 5) when idle
+  if (totalProducers >= 1 && totalProducers < 5 && allThreats === 0 && state.credits >= 50) {
     const prod = placeActions.filter(a =>
       TOWER_TYPES[a.tower] && TOWER_TYPES[a.tower].type === 'producer' &&
       !laneHasProducer(state.lanes.find(l => l.row === a.row))
@@ -218,11 +218,11 @@ AI.ruleBotDecide = function(state, legalActions) {
     if (prod) { d.push(prod); return d; }
   }
 
-  // 7. WALL — only in lane with no mower + threat very close
+  // 7. WALL — in lane with no mower + threat approaching (6 cells)
   for (let i = 0; i < state.lanes.length; i++) {
     const lane = state.lanes[i];
     if (laneHasWall(lane) || state.mowers[i]) continue;
-    if (!lane.threats.some(t => t.x < 3 * CELL_W)) continue;
+    if (!lane.threats.some(t => t.x < 6 * CELL_W)) continue;
     const wall = placeActions.filter(a =>
       a.row === lane.row && TOWER_TYPES[a.tower] &&
       (TOWER_TYPES[a.tower].type === 'defender' || TOWER_TYPES[a.tower].type === 'defender_aura')
