@@ -31,12 +31,12 @@
 
 | File | Content |
 |---|---|
-| [v1.1-new-maps.md](v1.1-new-maps.md) | Stage 8-10, map mechanics, level plans |
-| [v1.2-new-towers.md](v1.2-new-towers.md) | Tower / weapon pack |
-| [v1.3-new-threats.md](v1.3-new-threats.md) | Threat / boss pack |
-| [v1.4-challenge-modes.md](v1.4-challenge-modes.md) | Endless, Daily, Boss Rush, etc. |
-| [v1.5-ai-rule-bot.md](v1.5-ai-rule-bot.md) | Rule-based AI bot |
-| [v2.0-ai-llm-autoplay.md](v2.0-ai-llm-autoplay.md) | LLM-powered AI with user's API key |
-| [v2.1-ai-coach.md](v2.1-ai-coach.md) | AI Coach, Explain, Replay Review |
-| [v3.0-modding.md](v3.0-modding.md) | Modding / custom campaigns |
+| [01-v1.1-new-maps.md](01-v1.1-new-maps.md) | Stage 8-10, map mechanics, level plans |
+| [02-v1.2-new-towers.md](02-v1.2-new-towers.md) | Tower / weapon pack |
+| [03-v1.3-new-threats.md](03-v1.3-new-threats.md) | Threat / boss pack |
+| [04-v1.4-challenge-modes.md](04-v1.4-challenge-modes.md) | Endless, Daily, Boss Rush, etc. |
+| [05-v1.5-ai-rule-bot.md](05-v1.5-ai-rule-bot.md) | Rule-based AI bot |
+| [06-v2.0-ai-llm-autoplay.md](06-v2.0-ai-llm-autoplay.md) | LLM-powered AI with user's API key |
+| [07-v2.1-ai-coach.md](07-v2.1-ai-coach.md) | AI Coach, Explain, Replay Review |
+| [08-v3.0-modding.md](08-v3.0-modding.md) | Modding / custom campaigns |
 | [implementation-order.md](implementation-order.md) | Sprint-by-sprint implementation order |
