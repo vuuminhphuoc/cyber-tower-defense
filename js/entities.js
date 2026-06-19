@@ -10,7 +10,7 @@ function drawEntityShadow(cx, cy, rx, ry, alpha) {
   ctx.save();
   ctx.globalAlpha = alpha || 0.28;
   const grd = ctx.createRadialGradient(cx, cy, 2, cx, cy, rx);
-  grd.addColorStop(0, 'rgba(0,0,0,0.8)');
+  grd.addColorStop(0, COLORS.shadowDark);
   grd.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grd;
   ctx.beginPath();
@@ -22,12 +22,12 @@ function drawEntityShadow(cx, cy, rx, ry, alpha) {
 function drawEntityPlatform(cx, cy, rx, color) {
   ctx.save();
   ctx.globalAlpha = 0.45;
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillStyle = COLORS.tileBevelDark;
   ctx.beginPath();
   ctx.ellipse(cx, cy + 5, rx, rx * 0.28, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.globalAlpha = 0.65;
-  ctx.strokeStyle = color || '#00ff41';
+  ctx.strokeStyle = color || COLORS.green400;
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.ellipse(cx, cy + 3, rx, rx * 0.25, 0, 0, Math.PI * 2);
@@ -59,7 +59,7 @@ class Token {
     ctx.save();
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffd700';
+    ctx.fillStyle = COLORS.gold;
     ctx.fill();
     ctx.lineWidth = 4;
     ctx.strokeStyle = '#ff9800';
@@ -203,7 +203,7 @@ class Tower {
     if (this.cfg.slowDuration && this.type === 'scanner') this.cfg.slowDuration = Math.floor(this.cfg.slowDuration * 1.3); // Scanner: longer slow
     if (this.cfg.multiShot) this.cfg.multiShot = this.cfg.multiShot + 1; // DDoS: +1 shot
     Sound.towerPlace();
-    spawnFloatingText(this.centerX(), this.y - 10, 'UPGRADED!', '#ffd700');
+    spawnFloatingText(this.centerX(), this.y - 10, 'UPGRADED!', COLORS.gold);
     return true;
   }
 
@@ -302,8 +302,8 @@ class Tower {
           score += 10;
           this._chewing = true;
           this._chewUntil = now + this.cfg.chewTime;
-          spawnParticles(this.centerX(), this.centerY(), 8, '#ffaa00');
-          spawnFloatingText(this.centerX(), this.y - 10, 'DIGESTING', '#ffaa00');
+          spawnParticles(this.centerX(), this.centerY(), 8, COLORS.amber500);
+          spawnFloatingText(this.centerX(), this.y - 10, 'DIGESTING', COLORS.amber500);
         }
       }
     } else if (this.type === 'bomb') {
@@ -311,13 +311,13 @@ class Tower {
         this._exploded = true;
         const cx = this.centerX(), cy = this.centerY();
         const r = (this.cfg.radius || 1.5) * CELL_W;
-        spawnParticles(cx, cy, 20, '#ff6600');
+        spawnParticles(cx, cy, 20, COLORS.bombRadius);
         threats.forEach(z => {
           if (!z.markedForDeletion && Math.abs(z.centerX() - cx) < r && Math.abs(z.centerY() - cy) < r) {
             if (z.type === 'BOSS') { z.takeDamage(this.cfg.damage || 1800); }
             else {
               z.takeDamage(this.cfg.damage || 1800);
-              if (z.hp <= 0) { z.markedForDeletion = true; score += 10; spawnParticles(z.centerX(), z.centerY(), 6, '#ff3333'); }
+              if (z.hp <= 0) { z.markedForDeletion = true; score += 10; spawnParticles(z.centerX(), z.centerY(), 6, COLORS.red500); }
             }
           }
         });
@@ -327,11 +327,11 @@ class Tower {
     } else if (this.type === 'jalapeno') {
       if (!this._exploded) {
         this._exploded = true;
-        spawnParticles(this.centerX(), this.centerY(), 15, '#ff0000');
+        spawnParticles(this.centerX(), this.centerY(), 15, COLORS.red500);
         threats.forEach(z => {
           if (!z.markedForDeletion && z.row === this.row && z.type !== 'BOSS') {
             z.hp = 0; z.markedForDeletion = true; score += 10;
-            spawnParticles(z.centerX(), z.centerY(), 6, '#ff3333');
+            spawnParticles(z.centerX(), z.centerY(), 6, COLORS.red500);
           }
         });
         Sound.threatDie();
@@ -342,7 +342,7 @@ class Tower {
         if (now - this._armStart >= this.cfg.armTime) {
           this._armed = true;
           Sound.mineArm();
-          spawnFloatingText(this.x + this.width / 2, this.y - 10, 'ARMED', '#00ff41');
+          spawnFloatingText(this.x + this.width / 2, this.y - 10, 'ARMED', COLORS.green400);
         }
       } else {
         const mineDmg = this.cfg.damage || 1800;
@@ -361,8 +361,8 @@ class Tower {
               z._slowFactor = 0.5;
             });
             Sound.empExplosion();
-            spawnParticles(this.x + this.width / 2, this.y + this.height / 2, 15, '#9933ff');
-            spawnFloatingText(this.x + this.width / 2, this.y - 10, 'EMP!', '#9933ff');
+            spawnParticles(this.x + this.width / 2, this.y + this.height / 2, 15, COLORS.root);
+            spawnFloatingText(this.x + this.width / 2, this.y - 10, 'EMP!', COLORS.root);
             this.markedForDeletion = true;
           }
         } else {
@@ -376,8 +376,8 @@ class Tower {
             if (step.type === 'BOSS') { step.takeDamage(mineDmg); }
             else { step.takeDamage(mineDmg); if (step.hp <= 0) { step.markedForDeletion = true; score += 10; } }
             Sound.threatDie();
-            spawnParticles(this.x + this.width / 2, this.y + this.height / 2, 12, '#ff6600');
-            spawnFloatingText(step.centerX(), step.y - 10, '-' + mineDmg, '#ff6600');
+            spawnParticles(this.x + this.width / 2, this.y + this.height / 2, 12, COLORS.bombRadius);
+            spawnFloatingText(step.centerX(), step.y - 10, '-' + mineDmg, COLORS.bombRadius);
             this.markedForDeletion = true;
           }
         }
@@ -410,7 +410,7 @@ class Tower {
         });
         if (best) {
           best.hp = Math.min(best.maxHp, best.hp + (this.cfg.healAmount || 10));
-          spawnFloatingText(best.centerX(), best.y - 10, '+' + (this.cfg.healAmount || 10), '#00ff41');
+          spawnFloatingText(best.centerX(), best.y - 10, '+' + (this.cfg.healAmount || 10), COLORS.green400);
           Sound.heal();
         }
       }
@@ -454,7 +454,7 @@ class Tower {
           prey._trappedUntil = now + (this.cfg.trapDuration || 3000);
           prey._slowUntil = now + (this.cfg.trapDuration || 3000) + 5000;
           prey._slowFactor = this.cfg.trapSlow || 0.8;
-          spawnFloatingText(prey.centerX(), prey.y - 10, 'TRAPPED!', '#ffaa00');
+          spawnFloatingText(prey.centerX(), prey.y - 10, 'TRAPPED!', COLORS.amber500);
         }
       } else if (now >= this._trapUntil) {
         this._trapping = false;
@@ -518,8 +518,8 @@ class Tower {
           score += 10;
           this._chewing = true;
           this._chewUntil = now + (this.cfg.chewTime || 15000);
-          spawnParticles(this.centerX(), this.centerY(), 10, '#ffaa00');
-          spawnFloatingText(this.centerX(), this.y - 10, 'DIGESTING', '#ffaa00');
+          spawnParticles(this.centerX(), this.centerY(), 10, COLORS.amber500);
+          spawnFloatingText(this.centerX(), this.y - 10, 'DIGESTING', COLORS.amber500);
           // AoE slow in radius
           const aoeR = (this.cfg.aoeRadius || 2) * CELL_W;
           const aoeSlow = this.cfg.aoeSlow || 0.6;
@@ -540,7 +540,7 @@ class Tower {
     const cx = this.centerX();
     const cy = this.centerY();
     drawEntityShadow(cx, this.y + this.height - 12, this.width * 0.34, 10, 0.32);
-    drawEntityPlatform(cx, this.y + this.height - 20, this.width * 0.32, this._terrain === 'overheated' ? '#ff7733' : '#00ff41');
+    drawEntityPlatform(cx, this.y + this.height - 20, this.width * 0.32, this._terrain === 'overheated' ? COLORS.terrain.overheatedIcon : COLORS.green400);
     ctx.save();
     ctx.font = '54px serif';
     ctx.textAlign = 'center';
@@ -556,7 +556,7 @@ class Tower {
     if (this.type === 'mine' && !this._armed) ctx.globalAlpha = 0.35;
     if (this.type === 'chomper' && this._chewing) ctx.globalAlpha = 0.6;
     if (this._cloaked) ctx.globalAlpha = 0.4;
-    if (this._frozenUntil > gameTime) { ctx.globalAlpha = 0.5; ctx.fillStyle = '#7ec8e3'; }
+    if (this._frozenUntil > gameTime) { ctx.globalAlpha = 0.5; ctx.fillStyle = COLORS.frozenTint; }
     // attack flash effect
     if (this._attackFlash && gameTime - this._attackFlash < 120) {
       ctx.shadowColor = '#00ffff';
@@ -565,17 +565,17 @@ class Tower {
     // dark offset gives emoji towers a blocky, extruded 3D silhouette
     const bodyAlpha = ctx.globalAlpha;
     ctx.globalAlpha = bodyAlpha * 0.45;
-    ctx.fillStyle = '#001b0a';
+    ctx.fillStyle = COLORS.textDark;
     ctx.fillText(this.cfg.emoji, cx + 4, cy + 12);
     ctx.globalAlpha = bodyAlpha;
-    ctx.shadowColor = this._terrain === 'overheated' ? '#ff7733' : '#00ff41';
+    ctx.shadowColor = this._terrain === 'overheated' ? COLORS.terrain.overheatedIcon : COLORS.green400;
     ctx.shadowBlur = 8;
     ctx.fillText(this.cfg.emoji, cx, cy + 4);
     ctx.restore();
     // upgrade glow ring
     if (this.upgradeLevel >= 1) {
       ctx.save();
-      ctx.strokeStyle = '#ffd700';
+      ctx.strokeStyle = COLORS.gold;
       ctx.lineWidth = 2;
       ctx.globalAlpha = 0.4 + 0.2 * Math.sin(gameTime / 300);
       ctx.beginPath();
@@ -598,9 +598,9 @@ class Tower {
     const bw = this.width - 24;
     const bx = this.x + 12;
     const by = this.y + 8;
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillStyle = COLORS.overlayLight;
     ctx.fillRect(bx, by, bw, 6);
-    ctx.fillStyle = ratio > 0.5 ? '#2ecc71' : ratio > 0.25 ? '#f1c40f' : '#e74c3c';
+    ctx.fillStyle = ratio > 0.5 ? COLORS.progressFill : ratio > 0.25 ? COLORS.bossHpLow : COLORS.red500;
     ctx.fillRect(bx, by, bw * ratio, 6);
   }
 }
@@ -639,7 +639,7 @@ class Projectile {
             z.markedForDeletion = true;
             score += 10;
             Sound.threatDie();
-            spawnParticles(z.centerX(), z.centerY(), 6, '#c5f');
+            spawnParticles(z.centerX(), z.centerY(), 6, COLORS.terrain.quantumIcon);
           }
           this.pierceHit.push(z);
           this.pierceCount--;
@@ -656,19 +656,19 @@ class Projectile {
     ctx.globalAlpha = 0.3;
     ctx.beginPath();
     ctx.ellipse(this.x - 9, this.y + 6, this.width * 0.9, this.height * 0.38, 0, 0, Math.PI * 2);
-    ctx.fillStyle = this.slow ? '#7ec8e3' : '#a4e44a';
+    ctx.fillStyle = this.slow ? COLORS.frozenTint : COLORS.green500;
     ctx.fill();
     ctx.restore();
     // main projectile
     ctx.save();
-    ctx.shadowColor = this.slow ? '#7ec8e3' : '#a4e44a';
+    ctx.shadowColor = this.slow ? COLORS.frozenTint : COLORS.green500;
     ctx.shadowBlur = 12;
     ctx.beginPath();
     ctx.ellipse(this.x, this.y, this.width / 2, this.height / 2.5, 0, 0, Math.PI * 2);
-    ctx.fillStyle = this.slow ? '#7ec8e3' : '#a4e44a';
+    ctx.fillStyle = this.slow ? COLORS.frozenTint : COLORS.green500;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = this.slow ? '#4a90b5' : '#5a9216';
+    ctx.strokeStyle = this.slow ? COLORS.cyan700 : COLORS.green700;
     ctx.stroke();
     ctx.restore();
   }
@@ -784,7 +784,7 @@ class Threat {
         const steal = THREAT_TYPES.SPYWARE.stealAmount || 25;
         credits = Math.max(0, credits - steal);
         Sound.spywareSteal();
-        spawnFloatingText(target ? target.centerX() : this.x, this.y - 10, '-' + steal, '#ff3333');
+        spawnFloatingText(target ? target.centerX() : this.x, this.y - 10, '-' + steal, COLORS.red500);
       }
       // CryptoLocker: freeze tower (re-freeze after previous freeze expires)
       if (this.type === 'CRYPTOLOCKER' && now >= (target._frozenUntil || 0)) {
@@ -819,11 +819,11 @@ class Threat {
         // death explosion — more particles for tougher threats
         const hpRatio = this.cfg.hp / 200;
         const count = Math.min(4 + Math.floor(hpRatio * 2), 16);
-        const colors = ['#00ff41', '#39ff14', '#ff3333', '#ff6600'];
+        const colors = [COLORS.green400, '#39ff14', COLORS.red500, COLORS.bombRadius];
         spawnParticles(this.centerX(), this.centerY(), count, colors[Math.floor(Math.random() * colors.length)]);
         // extra flash for special threats
         if (this.cfg.stealAmount || this.cfg.freezeTime || this.cfg.slowFireRate) {
-          spawnParticles(this.centerX(), this.centerY(), 6, '#ffff00');
+          spawnParticles(this.centerX(), this.centerY(), 6, COLORS.yellow);
         }
         // Malware Dropper: spawn glitches on death
         if (this.cfg.spawnOnDeath) {
@@ -831,7 +831,7 @@ class Threat {
           for (let i = 0; i < count; i++) {
             queueThreatSpawn(this.cfg.spawnOnDeath, this.row);
           }
-          spawnFloatingText(this.centerX(), this.y - 10, 'DROPPED!', '#ff3333');
+          spawnFloatingText(this.centerX(), this.y - 10, 'DROPPED!', COLORS.red500);
         }
       }
     }
@@ -852,7 +852,7 @@ class Threat {
         this._hijackedTower = target;
         this._hijackUntil = gameTime + (THREAT_TYPES.ROOTKIT.hijackDuration || 4000);
         // visual effect
-        spawnFloatingText(target.centerX(), target.y - 10, 'HIJACKED!', '#ff00ff');
+        spawnFloatingText(target.centerX(), target.y - 10, 'HIJACKED!', COLORS.root);
         Sound.cryptolockerFreeze();
       }
       // deal 20 damage per second to hijacked tower while rootkit is alive
@@ -882,11 +882,11 @@ class Threat {
           !p.markedForDeletion && p.row === this.row && p.x > target.x && p.type !== 'defender');
         if (behindTower) {
           behindTower.hp -= dmg;
-          spawnFloatingText(behindTower.centerX(), behindTower.y - 10, '-' + dmg + ' (pierce)', '#ff3333');
-          spawnParticles(behindTower.centerX(), behindTower.centerY(), 6, '#ff0000');
+          spawnFloatingText(behindTower.centerX(), behindTower.y - 10, '-' + dmg + ' (pierce)', COLORS.red500);
+          spawnParticles(behindTower.centerX(), behindTower.centerY(), 6, COLORS.red500);
           if (behindTower.hp <= 0) behindTower.markedForDeletion = true;
         }
-        spawnFloatingText(this.centerX(), this.y - 10, 'SQL PIERCE!', '#ff3333');
+        spawnFloatingText(this.centerX(), this.y - 10, 'SQL PIERCE!', COLORS.red500);
       }
     } else if (this.type !== 'SQL_INJECTION') {
       this._sqlPierced = false;
@@ -903,7 +903,7 @@ class Threat {
       if (nearest) {
         nearest._spoofedUntil = gameTime + (this.cfg.spoofDuration || 3000);
         nearest._spoofTarget = this; // redirect to self
-        spawnFloatingText(nearest.centerX(), nearest.y - 10, 'SPOOFED!', '#ffaa00');
+        spawnFloatingText(nearest.centerX(), nearest.y - 10, 'SPOOFED!', COLORS.amber500);
       }
     }
 
@@ -931,7 +931,7 @@ class Threat {
             p.x + p.width > newX && p.x < this.x);
           if (!blocked) {
             this.x = newX;
-            spawnParticles(this.centerX(), this.centerY(), 8, '#c5f');
+            spawnParticles(this.centerX(), this.centerY(), 8, COLORS.terrain.quantumIcon);
           }
         }
       }
@@ -984,7 +984,7 @@ class Threat {
     ctx.fillStyle = '#210000';
     ctx.fillText(emoji, cx + 4, cy + 13 + bob);
     ctx.globalAlpha = this._cloaked ? 0.2 : (this._slowUntil > gameTime ? 0.7 : 1);
-    ctx.shadowColor = this._slowUntil > gameTime ? '#7ec8e3' : '#ff3333';
+    ctx.shadowColor = this._slowUntil > gameTime ? COLORS.frozenTint : COLORS.red500;
     ctx.shadowBlur = this.isEating ? 4 : 10;
     ctx.fillText(emoji, cx, cy + 6 + bob);
     if (cfg && cfg.hat) {
@@ -1035,9 +1035,9 @@ class Threat {
     const bw = this.width;
     const bx = this.x;
     const by = this.y + 4;
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.fillStyle = COLORS.overlayLight;
     ctx.fillRect(bx, by, bw, 5);
-    ctx.fillStyle = ratio > 0.5 ? '#2ecc71' : ratio > 0.25 ? '#f1c40f' : '#e74c3c';
+    ctx.fillStyle = ratio > 0.5 ? COLORS.progressFill : ratio > 0.25 ? COLORS.bossHpLow : COLORS.red500;
     ctx.fillRect(bx, by, bw * ratio, 5);
   }
 }
@@ -1095,7 +1095,7 @@ class Zomboss {
             const types = ['BASIC', 'CONEHEAD', 'BUCKETHEAD', 'FOOTBALL', 'SPYWARE', 'ADWARE', 'CRYPTOLOCKER', 'GLITCH', 'BOTNET', 'APT', 'ROOTKIT'];
             spawnThreatByType(types[Math.floor(Math.random() * types.length)], row);
           }
-          spawnFloatingText(canvas.width / 2, 60, 'SUMMONED ' + count + '!', '#ff3333');
+          spawnFloatingText(canvas.width / 2, 60, 'SUMMONED ' + count + '!', COLORS.red500);
           Sound.bossSummon();
           this.vulnerable = true;
           this.state = 'IDLE';
@@ -1110,18 +1110,18 @@ class Zomboss {
           const row = this._fireballRow;
           const rowY = TOP_OFFSET + row * CELL_H + CELL_H / 2;
           // screen flash
-          spawnParticles(canvas.width / 2, rowY, 30, '#ff4400');
+          spawnParticles(canvas.width / 2, rowY, 30, COLORS.bombRadius);
           // destroy towers
           towers.forEach(p => {
             if (p.row === row && !p.markedForDeletion) {
-              spawnParticles(p.centerX(), p.centerY(), 8, '#ff4400');
+              spawnParticles(p.centerX(), p.centerY(), 8, COLORS.bombRadius);
               p.markedForDeletion = true;
             }
           });
           projectiles.forEach(p => {
             if (p.row === row) p.markedForDeletion = true;
           });
-          spawnFloatingText(canvas.width / 2, 60, 'FIREBALL!', '#ff4400');
+          spawnFloatingText(canvas.width / 2, 60, 'FIREBALL!', COLORS.bombRadius);
           Sound.bossFireball();
           triggerShake(8, 500);
           this.vulnerable = true;
@@ -1138,16 +1138,16 @@ class Zomboss {
           const smashCol = Math.floor(Math.random() * (COLS - 2));
           const smashCX = (smashCol + 1.5) * CELL_W;
           const smashCY = TOP_OFFSET + (smashRow + 1) * CELL_H;
-          spawnParticles(smashCX, smashCY, 25, '#ff0066');
+          spawnParticles(smashCX, smashCY, 25, COLORS.red500);
           for (let r = smashRow; r < Math.min(smashRow + 2, gridRows); r++) {
             for (let c = smashCol; c < Math.min(smashCol + 3, COLS); c++) {
               if (grid[r] && grid[r][c] && grid[r][c].tower) {
-                spawnParticles(grid[r][c].tower.centerX(), grid[r][c].tower.centerY(), 8, '#ff0066');
+                spawnParticles(grid[r][c].tower.centerX(), grid[r][c].tower.centerY(), 8, COLORS.red500);
                 grid[r][c].tower.markedForDeletion = true;
               }
             }
           }
-          spawnFloatingText(canvas.width / 2, 60, 'SMASH!', '#ff0066');
+          spawnFloatingText(canvas.width / 2, 60, 'SMASH!', COLORS.red500);
           Sound.bossSmash();
           triggerShake(12, 600);
           this.vulnerable = true;
@@ -1174,7 +1174,7 @@ class Zomboss {
       // red row highlight
       const progress = 1 - (this.stateTimer - now) / 1500;
       ctx.globalAlpha = 0.15 + progress * 0.25;
-      ctx.fillStyle = '#ff0000';
+      ctx.fillStyle = COLORS.red500;
       ctx.fillRect(0, TOP_OFFSET + this._fireballRow * CELL_H, canvas.width, CELL_H);
       ctx.globalAlpha = 1;
     }
@@ -1188,7 +1188,7 @@ class Zomboss {
       ctx.globalAlpha = 0.25;
       ctx.beginPath();
       ctx.arc(cx, cy, 70, 0, Math.PI * 2);
-      ctx.fillStyle = '#3498db';
+      ctx.fillStyle = COLORS.cyan500;
       ctx.fill();
       ctx.globalAlpha = 1;
     }
@@ -1199,7 +1199,7 @@ class Zomboss {
     ctx.fillText('👾', cx, cy);
     // state indicator
     ctx.font = 'bold 16px Arial';
-    ctx.fillStyle = this.vulnerable ? '#2ecc71' : '#e74c3c';
+    ctx.fillStyle = this.vulnerable ? COLORS.progressFill : COLORS.red500;
     const stateLabel = this.vulnerable ? '⚡ VULNERABLE' :
       this.state === 'FIREBALL' ? '🔥 FIREBALL!' :
       this.state === 'SMASHING' ? '💥 SMASHING!' :
@@ -1212,12 +1212,12 @@ class Zomboss {
     const bw = this.width;
     const bx = this.x;
     const by = this.y + this.height - 12;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillStyle = COLORS.overlayLight;
     ctx.fillRect(bx, by, bw, 8);
-    ctx.fillStyle = ratio > 0.5 ? '#2ecc71' : ratio > 0.25 ? '#f1c40f' : '#e74c3c';
+    ctx.fillStyle = ratio > 0.5 ? COLORS.progressFill : ratio > 0.25 ? COLORS.bossHpLow : COLORS.red500;
     ctx.fillRect(bx, by, bw * ratio, 8);
     ctx.font = '11px Arial';
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = COLORS.textWhite;
     ctx.textAlign = 'center';
     ctx.fillText(Math.max(0, Math.ceil(this.hp)) + ' / ' + this.maxHp, cx, by - 4);
   }
@@ -1249,7 +1249,7 @@ class BotnetCommander extends Zomboss {
     if (now - this._lastSummon >= 10000) {
       this._lastSummon = now;
       spawnThreatByType('BOTNET', Math.floor(Math.random() * gridRows));
-      spawnFloatingText(canvas.width / 2, 60, 'BOTNET SUMMONED!', '#ff3333');
+      spawnFloatingText(canvas.width / 2, 60, 'BOTNET SUMMONED!', COLORS.red500);
       Sound.bossSummon();
     }
     // shielded (invulnerable) while botnets alive
@@ -1261,12 +1261,12 @@ class BotnetCommander extends Zomboss {
     if (!this.vulnerable) {
       ctx.globalAlpha = 0.25;
       ctx.beginPath(); ctx.arc(cx, cy, 70, 0, Math.PI * 2);
-      ctx.fillStyle = '#9b59b6'; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.fillStyle = COLORS.root; ctx.fill(); ctx.globalAlpha = 1;
     }
     ctx.font = '80px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(this.emoji, cx, cy);
     ctx.font = 'bold 14px Arial';
-    ctx.fillStyle = this.vulnerable ? '#2ecc71' : '#e74c3c';
+    ctx.fillStyle = this.vulnerable ? COLORS.progressFill : COLORS.red500;
     ctx.fillText(this.vulnerable ? '⚡ VULNERABLE' : '🛡️ SHIELDED (kill botnets)', cx, this.y + 12);
     ctx.restore();
     this._drawHp(cx);
@@ -1274,10 +1274,10 @@ class BotnetCommander extends Zomboss {
   _drawHp(cx) {
     const ratio = Math.max(0, this.hp / this.maxHp);
     const bw = this.width, bx = this.x, by = this.y + this.height - 12;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx, by, bw, 8);
-    ctx.fillStyle = ratio > 0.5 ? '#2ecc71' : ratio > 0.25 ? '#f1c40f' : '#e74c3c';
+    ctx.fillStyle = COLORS.overlayLight; ctx.fillRect(bx, by, bw, 8);
+    ctx.fillStyle = ratio > 0.5 ? COLORS.progressFill : ratio > 0.25 ? COLORS.bossHpLow : COLORS.red500;
     ctx.fillRect(bx, by, bw * ratio, 8);
-    ctx.font = '11px Arial'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+    ctx.font = '11px Arial'; ctx.fillStyle = COLORS.textWhite; ctx.textAlign = 'center';
     ctx.fillText(Math.max(0, Math.ceil(this.hp)) + ' / ' + this.maxHp, cx, by - 4);
   }
 }
@@ -1308,7 +1308,7 @@ class SatelliteHijacker extends Zomboss {
         if (now >= this.stateTimer) {
           // disable (freeze) all towers in a lane for 5s
           towers.forEach(p => { if (p.row === this._jamRow && !p.markedForDeletion) p._frozenUntil = now + 5000; });
-          spawnFloatingText(canvas.width / 2, 60, 'LANE JAMMED!', '#a7f');
+          spawnFloatingText(canvas.width / 2, 60, 'LANE JAMMED!', COLORS.terrain.signalDelayIcon);
           triggerShake(6, 400);
           this.state = 'IDLE'; this._nextAction = now + 6000; this.vulnerable = true;
         }
@@ -1317,7 +1317,7 @@ class SatelliteHijacker extends Zomboss {
         if (now >= this.stateTimer) {
           // signal storm: slow all existing projectiles 50% for 3s (slow new ones via flag)
           projectiles.forEach(p => p.speed *= 0.5);
-          spawnFloatingText(canvas.width / 2, 60, 'SIGNAL STORM!', '#a7f');
+          spawnFloatingText(canvas.width / 2, 60, 'SIGNAL STORM!', COLORS.terrain.signalDelayIcon);
           this.state = 'IDLE'; this._nextAction = now + 6000; this.vulnerable = true;
         }
         break;
@@ -1325,7 +1325,7 @@ class SatelliteHijacker extends Zomboss {
         if (now >= this.stateTimer) {
           const count = 2 + Math.floor(Math.random() * 2);
           for (let i = 0; i < count; i++) spawnThreatByType('GLITCH', Math.floor(Math.random() * gridRows));
-          spawnFloatingText(canvas.width / 2, 60, 'QUANTUM WORMS!', '#ff3333');
+          spawnFloatingText(canvas.width / 2, 60, 'QUANTUM WORMS!', COLORS.red500);
           Sound.bossSummon();
           this.state = 'IDLE'; this._nextAction = now + 6000; this.vulnerable = true;
         }
@@ -1351,14 +1351,14 @@ class QuantumRoot extends Zomboss {
     // enrage at 30% HP
     if (!this._enraged && this.hp <= this.maxHp * 0.3) {
       this._enraged = true;
-      spawnFloatingText(canvas.width / 2, 60, 'QUANTUM ROOT ENRAGED!', '#c5f');
+      spawnFloatingText(canvas.width / 2, 60, 'QUANTUM ROOT ENRAGED!', COLORS.terrain.quantumIcon);
       triggerShake(14, 700);
     }
     // teleport between lanes every 8s (visual reposition)
     if (now - this._lastTeleport >= 8000) {
       this._lastTeleport = now;
       this.y = 20 + Math.floor(Math.random() * 3) * 20;
-      spawnParticles(this.centerX(), this.centerY(), 20, '#c5f');
+      spawnParticles(this.centerX(), this.centerY(), 20, COLORS.terrain.quantumIcon);
     }
     if (now < this._nextAction) { this.vulnerable = true; return; }
     // summon APT + Rootkit pairs
@@ -1367,7 +1367,7 @@ class QuantumRoot extends Zomboss {
       spawnThreatByType('APT', Math.floor(Math.random() * gridRows));
       spawnThreatByType('ROOTKIT', Math.floor(Math.random() * gridRows));
     }
-    spawnFloatingText(canvas.width / 2, 60, 'APT + ROOTKIT WAVE!', '#ff3333');
+    spawnFloatingText(canvas.width / 2, 60, 'APT + ROOTKIT WAVE!', COLORS.red500);
     Sound.bossSummon();
     this._nextAction = now + (this._enraged ? 5000 : 8000);
     this.vulnerable = true;
@@ -1375,19 +1375,19 @@ class QuantumRoot extends Zomboss {
   draw() {
     const cx = this.centerX(), cy = this.centerY();
     ctx.save();
-    if (this._enraged) { ctx.shadowColor = '#c5f'; ctx.shadowBlur = 25; }
+    if (this._enraged) { ctx.shadowColor = COLORS.terrain.quantumIcon; ctx.shadowBlur = 25; }
     ctx.font = '80px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(this.emoji, cx, cy);
     ctx.font = 'bold 14px Arial';
-    ctx.fillStyle = this._enraged ? '#c5f' : '#2ecc71';
+    ctx.fillStyle = this._enraged ? COLORS.terrain.quantumIcon : COLORS.progressFill;
     ctx.fillText(this._enraged ? '🔥 ENRAGED' : '⚛️ QUANTUM CORE', cx, this.y + 12);
     ctx.restore();
     const ratio = Math.max(0, this.hp / this.maxHp);
     const bw = this.width, bx = this.x, by = this.y + this.height - 12;
-    ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(bx, by, bw, 8);
-    ctx.fillStyle = ratio > 0.5 ? '#2ecc71' : ratio > 0.25 ? '#f1c40f' : '#e74c3c';
+    ctx.fillStyle = COLORS.overlayLight; ctx.fillRect(bx, by, bw, 8);
+    ctx.fillStyle = ratio > 0.5 ? COLORS.progressFill : ratio > 0.25 ? COLORS.bossHpLow : COLORS.red500;
     ctx.fillRect(bx, by, bw * ratio, 8);
-    ctx.font = '11px Arial'; ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+    ctx.font = '11px Arial'; ctx.fillStyle = COLORS.textWhite; ctx.textAlign = 'center';
     ctx.fillText(Math.max(0, Math.ceil(this.hp)) + ' / ' + this.maxHp, cx, by - 4);
   }
 }
@@ -1450,19 +1450,19 @@ class LawnMower {
     const cy = this.y + CELL_H / 2;
     ctx.save();
     // body
-    ctx.fillStyle = this.activated ? '#e74c3c' : '#888';
+    ctx.fillStyle = this.activated ? COLORS.red500 : COLORS.textGray;
     ctx.beginPath();
     ctx.arc(cx, cy + 4, 14, 0, Math.PI * 2);
     ctx.fill();
     // handle
-    ctx.strokeStyle = '#555';
+    ctx.strokeStyle = COLORS.textDim;
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(cx, cy + 4);
     ctx.lineTo(cx + 6, cy - 14);
     ctx.stroke();
     // blade
-    ctx.fillStyle = '#aaa';
+    ctx.fillStyle = COLORS.textGray;
     ctx.beginPath();
     ctx.arc(cx - 8, cy + 10, 5, 0, Math.PI * 2);
     ctx.fill();

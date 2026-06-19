@@ -126,7 +126,7 @@ function render() {
     if (p._frozenUntil > gameTime) {
       ctx.save();
       ctx.globalAlpha = 0.3;
-      ctx.fillStyle = '#7ec8e3';
+      ctx.fillStyle = COLORS.frozenTint;
       ctx.fillRect(p.x, p.y, p.width, p.height);
       ctx.restore();
     }
@@ -137,7 +137,7 @@ function render() {
       const pulse = Math.sin(gameTime / 300) * 0.15 + 0.15;
       ctx.save();
       ctx.globalAlpha = pulse;
-      ctx.fillStyle = '#00ff41';
+      ctx.fillStyle = COLORS.scannerPulse;
       ctx.fillRect(p.x, TOP_OFFSET + p.row * CELL_H, p.width, CELL_H);
       ctx.restore();
     }
@@ -148,7 +148,7 @@ function render() {
       const r = (p.cfg.cloakRadius || 1.5) * CELL_W;
       ctx.save();
       ctx.globalAlpha = 0.15;
-      ctx.fillStyle = '#00ff41';
+      ctx.fillStyle = COLORS.green400;
       // draw centered rectangle matching actual cloak range
       ctx.fillRect(p.x + p.width / 2 - r, TOP_OFFSET + p.row * CELL_H, r * 2, CELL_H);
       ctx.restore();
@@ -163,7 +163,7 @@ function render() {
     const canPlace = selectedTowerKey && grid[hoverRow] && grid[hoverRow][hoverCol] &&
       !grid[hoverRow][hoverCol].tower && grid[hoverRow][hoverCol].cellType !== 'grave';
     ctx.globalAlpha = 0.25;
-    ctx.fillStyle = canPlace ? '#00ff41' : '#ff3333';
+    ctx.fillStyle = canPlace ? COLORS.green400 : COLORS.red500;
     ctx.fillRect(hx, hy, CELL_W, CELL_H);
     // range indicator for selected tower
     if (selectedTowerKey && canPlace) {
@@ -171,68 +171,68 @@ function render() {
       if (cfg && (cfg.type === 'shooter' || cfg.type === 'multishooter')) {
         // shooters target entire row to the right
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#00ffff';
+        ctx.fillStyle = COLORS.cyan500;
         ctx.fillRect(hx + CELL_W, hy, canvas.width - hx - CELL_W, CELL_H);
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#00ffff';
+        ctx.strokeStyle = COLORS.cyan500;
         ctx.lineWidth = 1;
         ctx.strokeRect(hx + CELL_W, hy, canvas.width - hx - CELL_W, CELL_H);
       } else if (cfg && cfg.type === 'scanner') {
         // scanner: highlight entire row
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#00ffff';
+        ctx.fillStyle = COLORS.cyan500;
         ctx.fillRect(0, hy, canvas.width, CELL_H);
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#00ffff';
+        ctx.strokeStyle = COLORS.cyan500;
         ctx.lineWidth = 1;
         ctx.strokeRect(0, hy, canvas.width, CELL_H);
       } else if (cfg && cfg.type === 'bomb') {
         // bomb: show explosion radius
         const r = (cfg.radius || 1.5) * CELL_W;
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#ff6600';
+        ctx.fillStyle = COLORS.bombRadius;
         ctx.beginPath();
         ctx.arc(hx + CELL_W / 2, hy + CELL_H / 2, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#ff6600';
+        ctx.strokeStyle = COLORS.bombRadius;
         ctx.lineWidth = 1;
         ctx.stroke();
       } else if (cfg && cfg.type === 'mine') {
         // mine: show trigger zone
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#ff6600';
+        ctx.fillStyle = COLORS.bombRadius;
         ctx.fillRect(hx, hy, CELL_W, CELL_H);
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#ff6600';
+        ctx.strokeStyle = COLORS.bombRadius;
         ctx.lineWidth = 1;
         ctx.strokeRect(hx, hy, CELL_W, CELL_H);
       } else if (cfg && cfg.type === 'vpn') {
         // VPN: show cloak radius
         const r = (cfg.cloakRadius || 1.5) * CELL_W;
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#00ff41';
+        ctx.fillStyle = COLORS.green400;
         ctx.fillRect(hx + CELL_W / 2 - r, hy, r * 2, CELL_H);
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#00ff41';
+        ctx.strokeStyle = COLORS.green400;
         ctx.lineWidth = 1;
         ctx.strokeRect(hx + CELL_W / 2 - r, hy, r * 2, CELL_H);
       } else if (cfg && cfg.type === 'healer') {
         // healer: show heal range (2 tiles)
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#00ff41';
+        ctx.fillStyle = COLORS.green400;
         ctx.fillRect(hx - CELL_W, hy - CELL_H, CELL_W * 5, CELL_H * 3);
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#00ff41';
+        ctx.strokeStyle = COLORS.green400;
         ctx.lineWidth = 1;
         ctx.strokeRect(hx - CELL_W, hy - CELL_H, CELL_W * 5, CELL_H * 3);
       } else if (cfg && cfg.type === 'chomper') {
         // chomper: show eat range
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = '#ffaa00';
+        ctx.fillStyle = COLORS.amber500;
         ctx.fillRect(hx, hy, CELL_W + 40, CELL_H);
         ctx.globalAlpha = 0.3;
-        ctx.strokeStyle = '#ffaa00';
+        ctx.strokeStyle = COLORS.amber500;
         ctx.lineWidth = 1;
         ctx.strokeRect(hx, hy, CELL_W + 40, CELL_H);
       }
@@ -243,7 +243,7 @@ function render() {
       if (hovTower && !hovTower.markedForDeletion) {
         ctx.save();
         ctx.globalAlpha = 0.12;
-        ctx.fillStyle = '#00ffff';
+        ctx.fillStyle = COLORS.cyan500;
         if (hovTower.type === 'scanner') {
           ctx.fillRect(0, TOP_OFFSET + hoverRow * CELL_H, canvas.width, CELL_H);
         } else if (hovTower.cfg.cloakRadius) {
@@ -308,19 +308,20 @@ function render() {
         ctx.font = '40px serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        ctx.fillStyle = COLORS.textPrimary;
         ctx.fillText(p.cfg.emoji, p.centerX(), p.centerY() + 4);
         // draw HP bar silhouette
         const bw = p.width - 24;
         const bx = p.x + 12;
         const by = p.y + 8;
-        ctx.fillStyle = 'rgba(0,255,65,0.3)';
+        ctx.fillStyle = COLORS.hpBarGreen;
         ctx.fillRect(bx, by, bw, 6);
       }
     });
     // then draw fog with pulsing alpha
     const fogPulse = 0.45 + 0.1 * Math.sin(gameTime / 2000);
     ctx.globalAlpha = fogPulse;
-    ctx.fillStyle = 'rgba(20,20,40,0.8)';
+    ctx.fillStyle = COLORS.fogPulse;
     currentLevel.fogColumns.forEach(col => {
       ctx.fillRect(col * CELL_W, 0, CELL_W, canvas.height);
     });
@@ -336,8 +337,8 @@ function render() {
     ctx.font = 'bold 48px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(231,76,60,0.9)';
-    ctx.strokeStyle = '#fff';
+    ctx.fillStyle = COLORS.banner;
+    ctx.strokeStyle = COLORS.white;
     ctx.lineWidth = 3;
     ctx.strokeText(bannerText, canvas.width / 2, canvas.height / 2);
     ctx.fillText(bannerText, canvas.width / 2, canvas.height / 2);
@@ -347,7 +348,7 @@ function render() {
   // score
   ctx.save();
   ctx.font = 'bold 16px Arial';
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = COLORS.textWhite;
   ctx.textAlign = 'right';
   ctx.fillText('Score: ' + score, canvas.width - 12, 22);
   ctx.restore();
@@ -379,9 +380,9 @@ function drawProgressBar() {
   if (WAVES.length === 0) return;
   const bw = 260, bh = 14, bx = canvas.width / 2 - bw / 2, by = canvas.height - 24;
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.fillStyle = COLORS.overlayLight;
   ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
-  ctx.fillStyle = '#3a2614';
+  ctx.fillStyle = COLORS.progressBg;
   ctx.fillRect(bx, by, bw, bh);
   // progress (wave + intra-wave smooth)
   let prog = 0;
@@ -392,7 +393,7 @@ function drawProgressBar() {
       : 0;
     prog = Math.min(waveProg + intraWave, 1);
   }
-  ctx.fillStyle = '#2ecc71';
+  ctx.fillStyle = COLORS.progressFill;
   ctx.fillRect(bx, by, bw * prog, bh);
   // flag markers at huge waves
   WAVES.forEach((w, i) => {
@@ -400,13 +401,14 @@ function drawProgressBar() {
       const fx = bx + bw * (i / Math.max(1, WAVES.length - 1));
       ctx.font = '16px serif';
       ctx.textAlign = 'center';
-      ctx.fillText('🚩', fx, by - 6);
+      ctx.fillText('\uD83D\uDEA9', fx, by - 6);
     }
   });
   // threat count at end
   ctx.font = '18px serif';
   ctx.textAlign = 'center';
-  ctx.fillText('🦠', bx + bw + 14, by + bh / 2 + 2);
+  ctx.fillStyle = COLORS.textPrimary;
+  ctx.fillText('\uD83E\uDDA0', bx + bw + 14, by + bh / 2 + 2);
   // wave countdown timer (show between waves)
   if (waveStarted && !waveActive && currentWave + 1 < WAVES.length) {
     const nextWaveDelay = WAVES[currentWave + 1].delay || 0;
@@ -414,7 +416,7 @@ function drawProgressBar() {
     const remaining = Math.max(0, Math.ceil((nextWaveDelay - timeSinceLastWave) / 1000));
     if (remaining > 0 && nextWaveDelay > 0) {
       ctx.font = 'bold 14px Courier New';
-      ctx.fillStyle = '#00ffff';
+      ctx.fillStyle = COLORS.cyan500;
       ctx.textAlign = 'center';
       ctx.fillText('Next wave in ' + remaining + 's', canvas.width / 2, by - 14);
     }
@@ -427,14 +429,14 @@ function drawBossHpBar() {
   const bw = 400, bh = 18, bx = canvas.width / 2 - bw / 2, by = 6;
   const ratio = Math.max(0, bossZomboss.hp / bossZomboss.maxHp);
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillStyle = COLORS.hpBarFrame;
   ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
-  ctx.fillStyle = '#333';
+  ctx.fillStyle = COLORS.hpBarBg;
   ctx.fillRect(bx, by, bw, bh);
-  ctx.fillStyle = ratio > 0.5 ? '#e74c3c' : ratio > 0.25 ? '#f39c12' : '#f1c40f';
+  ctx.fillStyle = ratio > 0.5 ? COLORS.bossHpHigh : ratio > 0.25 ? COLORS.bossHpMid : COLORS.bossHpLow;
   ctx.fillRect(bx, by, bw * ratio, bh);
   ctx.font = 'bold 12px Arial';
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = COLORS.textWhite;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText((bossZomboss.name || 'Zero-Day Exploit') + ' — ' + Math.max(0, Math.ceil(bossZomboss.hp)) + ' HP', canvas.width / 2, by + bh / 2);
@@ -444,20 +446,20 @@ function drawBossHpBar() {
 function drawPauseOverlay() {
   if (!gamePaused) return;
   ctx.save();
-  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillStyle = COLORS.overlayMedium;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.font = 'bold 56px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = COLORS.textWhite;
   ctx.fillText('PAUSED', canvas.width / 2, canvas.height / 2 - 40);
   ctx.font = 'bold 20px Arial';
-  ctx.fillStyle = '#aaa';
+  ctx.fillStyle = COLORS.textGray;
   ctx.fillText('Press SPACE to resume', canvas.width / 2, canvas.height / 2 + 10);
   // Quit button
-  ctx.fillStyle = '#e74c3c';
+  ctx.fillStyle = COLORS.pauseBtn;
   ctx.fillRect(canvas.width / 2 - 80, canvas.height / 2 + 40, 160, 40);
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = COLORS.textWhite;
   ctx.font = 'bold 16px Arial';
   ctx.fillText('QUIT TO MENU', canvas.width / 2, canvas.height / 2 + 64);
   ctx.restore();

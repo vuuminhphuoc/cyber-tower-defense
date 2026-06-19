@@ -55,20 +55,20 @@ function initGrid() {
 
 // terrain visual config: fill colors + icon
 const TERRAIN_STYLE = {
-  server_rack:  { a: '#1a1a2e', b: '#20203a', icon: '🖥️', iconColor: '#5af' },
-  overheated:   { a: '#2e1a0a', b: '#3a2010', icon: '🔥', iconColor: '#f73' },
-  signal_delay: { a: '#1a1030', b: '#221540', icon: '📶', iconColor: '#a7f' },
-  uplink:       { a: '#0a2030', b: '#0e2840', icon: '🛰️', iconColor: '#5cf' },
-  quantum:      { a: '#1a0a2e', b: '#22103a', icon: '⚛️', iconColor: '#c5f' },
-  entangled:    { a: '#0a2e2a', b: '#103a35', icon: '🔗', iconColor: '#5fc' }
+  server_rack:  { a: COLORS.terrain.serverRackA, b: COLORS.terrain.serverRackB, icon: '\uD83D\uDDA5\uFE0F', iconColor: COLORS.terrain.serverRackIcon },
+  overheated:   { a: COLORS.terrain.overheatedA, b: COLORS.terrain.overheatedB, icon: '\uD83D\uDD25', iconColor: COLORS.terrain.overheatedIcon },
+  signal_delay: { a: COLORS.terrain.signalDelayA, b: COLORS.terrain.signalDelayB, icon: '\uD83D\uDCF6', iconColor: COLORS.terrain.signalDelayIcon },
+  uplink:       { a: COLORS.terrain.uplinkA, b: COLORS.terrain.uplinkB, icon: '\uD83D\uDEF0\uFE0F', iconColor: COLORS.terrain.uplinkIcon },
+  quantum:      { a: COLORS.terrain.quantumA, b: COLORS.terrain.quantumB, icon: '\u269B\uFE0F', iconColor: COLORS.terrain.quantumIcon },
+  entangled:    { a: COLORS.terrain.entangledA, b: COLORS.terrain.entangledB, icon: '\uD83D\uDD17', iconColor: COLORS.terrain.entangledIcon }
 };
 
 function tileColor(cell, r, c) {
   const style = TERRAIN_STYLE[cell.cellType];
-  if (cell.cellType === 'water') return (r + c) % 2 === 0 ? '#0a2e4a' : '#0c3555';
-  if (cell.cellType === 'grave') return (r + c) % 2 === 0 ? '#2a1520' : '#351a28';
+  if (cell.cellType === 'water') return (r + c) % 2 === 0 ? COLORS.tileWaterA : COLORS.tileWaterB;
+  if (cell.cellType === 'grave') return (r + c) % 2 === 0 ? COLORS.tileGraveA : COLORS.tileGraveB;
   if (style) return (r + c) % 2 === 0 ? style.a : style.b;
-  return (r + c) % 2 === 0 ? '#0a1a0a' : '#0e220e';
+  return (r + c) % 2 === 0 ? COLORS.tileGrassA : COLORS.tileGrassB;
 }
 
 function draw3dTile(x, y, w, h, color, cell) {
@@ -78,7 +78,7 @@ function draw3dTile(x, y, w, h, color, cell) {
   const topH = h - depth - 4;
   const grd = ctx.createLinearGradient(x, y, x, y + h);
   grd.addColorStop(0, color);
-  grd.addColorStop(1, '#020806');
+  grd.addColorStop(1, COLORS.textDark);
 
   // top face: slightly skewed quadrilateral for isometric depth
   ctx.beginPath();
@@ -97,7 +97,7 @@ function draw3dTile(x, y, w, h, color, cell) {
   ctx.lineTo(x + w - 10, y + h - 3);
   ctx.lineTo(x + 10, y + h - 1);
   ctx.closePath();
-  ctx.fillStyle = 'rgba(0,0,0,0.45)';
+  ctx.fillStyle = COLORS.tileBevelDark;
   ctx.fill();
 
   // right bevel
@@ -107,11 +107,11 @@ function draw3dTile(x, y, w, h, color, cell) {
   ctx.lineTo(x + w - 10, y + h - 3);
   ctx.lineTo(x + w - inset - 5, topY + depth);
   ctx.closePath();
-  ctx.fillStyle = 'rgba(0,255,65,0.05)';
+  ctx.fillStyle = COLORS.tileBevelGlow;
   ctx.fill();
 
   // neon top edge
-  ctx.strokeStyle = cell.cellType === 'water' ? 'rgba(0,220,255,0.22)' : 'rgba(0,255,65,0.18)';
+  ctx.strokeStyle = cell.cellType === 'water' ? COLORS.tileEdgeWater : COLORS.tileEdgeGrass;
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(x + inset, topY + 4);
@@ -135,11 +135,11 @@ function drawLawn() {
         const gx = c * CELL_W + CELL_W / 2;
         const gy = TOP_OFFSET + r * ch + ch / 2;
         ctx.save();
-        ctx.fillStyle = '#ff3333';
+        ctx.fillStyle = COLORS.red500;
         ctx.font = '20px monospace';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('⚠', gx, gy);
+        ctx.fillText('\u26A0', gx, gy);
         ctx.restore();
       } else if (style) {
         // draw terrain icon faintly in the corner
@@ -150,13 +150,14 @@ function drawLawn() {
         ctx.font = '16px serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
+        ctx.fillStyle = style.iconColor;
         ctx.fillText(style.icon, gx, gy);
         ctx.restore();
       }
     }
   }
   // outer neon frame
-  ctx.strokeStyle = 'rgba(0,255,65,0.25)';
+  ctx.strokeStyle = COLORS.tileFrame;
   ctx.lineWidth = 2;
   ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
 }
